@@ -1,1 +1,0 @@
-# dari himpunan matriks foto wajah, cari rata rata, kurangi nillai tengah sampe ketemu kovarian

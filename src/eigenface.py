@@ -1,81 +1,59 @@
-# Algoritma eigenface , ngitung eigenvalue pake svd
+# Algoritma eigenface , ngitung eigenvalue pake QR algorithm
 import numpy as np
 import os
-import face_detection
+import cv2
+from tabulate import tabulate
 
-def checkDiagonal(arr):
+def checkConverge(arr,arr_prev):
+    # Mengecek nilai elemen matriks apakah konvergen menuju suatu nilai
+    # print(np.linalg.norm(arr_prev-arr))
     for i in range(len(arr)):
-        for j in range(len(arr[i])):
-            if i == j:
-                continue
-            else:
-                if abs(arr[i][j]) > 0.001 and (i > j):
-                    return False
+        for j in range(len(arr)):
+            if ( np.linalg.norm(arr_prev-arr)> 10000): # Parameter dapat diubah sesuai tingkat akurasi
+                return False
     return True
 
-def qrFactorization(arr):
-    temp = arr
+def eigen_qr_practical(A):
+    Ak = np.copy(A)
+    n = Ak.shape[0]
+    QQ = np.eye(n)
     i = 0
     while(True):
-        Q,R = np.linalg.qr(temp)
-        temp = np.dot(R, Q)
-        if(checkDiagonal(temp)):
-            print("Number of Factorizations: " + str(i+1))
+        # s_k is the last item of the first diagonal
+        Ak_copy = np.copy(Ak)
+        s = Ak.item(n-1, n-1)
+        smult = s * np.eye(n)
+        # pe perform qr and subtract smult
+        Q, R = np.linalg.qr(np.subtract(Ak, smult))
+        # we add smult back in
+        Ak = np.add(R @ Q, smult)
+        QQ = QQ @ Q
+        i += 1
+        if(checkConverge(Ak,Ak_copy)):
+            # print(QQ)
             break
-        else:
-            i += 1
-    
-        # print(temp)
+    return QQ # QQ adalah eigenvektor
 
-    
-    return temp
-
-def getEigenvalue(arr):
-    temp = np.zeros(len(arr),1)
-    count = 1
-    for i in range(len(arr)):
-        temp[i][0] = arr[i][i]
-        if(abs(temp[i][0]) < 0.000000000001):
-            temp = 0
-        print("Lamda"+str(count) +": " + str(temp[i][0]))
-        count += 1
-
-    return temp
-    
-# def read():
-#     f = open('src\matrix.txt', 'r')
-#     temp = f.read().split('\n')
-#     arr = []
-#     for i in temp:
-#         if i == '':
-#             continue
-#         arr.append(i.split(" "))
-#     for i in range(len(arr)):
-#         for j in range(len(arr[i])):
-#             arr[i][j] = int(arr[i][j])
-#     return arr
-
-def eigenface(A,N,pth):
-    
-    
-    
-    path = r"test/pins_dataset/" + pth #"pins_dataset" itu nama foldernya
+def getEigenFace(V,path):
     temp = os.listdir(path)
-    eigval = getEigenvalue(qrFactorization(A))
-    eigenfaceMat = np.zeros(len(A),len(A))
-    i = 0
+    EF = np.zeros((len(V),len(V)))
     for file in temp:
-        a = face_detection.convertImage("test/pins_dataset/"+pth+"/"+file)
+        a = convertImage(path+"/"+file)
         a = np.reshape(a,(256,256))
+        EF += np.matmul(V,a)
+    return EF
 
-        temp = np.zeros(len(A),len(A[0]))
-        eigvalMat = np.fill_diagonal(temp,eigval[i])
-        eigvalMat = np.subtract(eigvalMat,A)
-        b = np.zeros(len(A))
-        eigvector = np.linalg.solve(eigvalMat, b)
-        eigenfaceMat = np.add(eigenfaceMat,np.matmul(eigvector,a))
 
+def convertImage(imagename):
+    # Mengubah image menjadi matriks n*n x 1
+    image = cv2.imread(imagename)
+    image = cv2.resize(image, (256, 256), interpolation = cv2.INTER_AREA)
+    greyscaleimg = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    converted = greyscaleimg.flatten()
+    return converted
+
+def findeigenface(A,pth):
+    path = r"test/pins_dataset/" + pth #"test/pins_dataset" itu nama foldernya
+    eigenVectorMat = eigen_qr_practical(A)
+    eigenfaceMat = getEigenFace(eigenVectorMat,path)
     return eigenfaceMat
-
-# if __name__ == '__main__':
-#     main()

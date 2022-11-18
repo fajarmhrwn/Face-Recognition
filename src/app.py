@@ -94,17 +94,20 @@ class App(customtkinter.CTk):
 
         # ============ frame_right ============
 
-        # configure grid layout (2x8)
-        
-
-        # ============ frame_info ============
-
-        # configure grid layout (1x1)
+        # configure grid layout (8x4)
+        self.frame_right.grid_rowconfigure(0, minsize=5)  # empty row with minsize as spacing
+        self.frame_right.grid_rowconfigure((1,2,3,4,5,6,7,8), weight=1)  # empty row as spacing # empty row with minsize as spacing
+        self.frame_right.grid_columnconfigure(0, weight=1)  # empty column as spacing
+        self.frame_right.grid_columnconfigure(1, weight=1)  # empty column as spacing
+        self.frame_right.grid_columnconfigure(2, weight=1)  # empty column as spacing
+        self.frame_right.grid_columnconfigure(3, weight=1)  # empty column as spacing
         
         self.label_5 = customtkinter.CTkLabel(master=self.frame_right,
                                                 text="Face Recognition",
                                                 text_font=("Roboto Bold", -32))
-        self.label_5.grid(row=0, column=0, columnspan=2, pady=10, padx=10, sticky="nsew")
+        # center label_5 in frame_right
+        self.label_5.grid(row=0, column=0, columnspan=4, pady=10, padx=10, sticky="nsew")  
+
 
         self.label_info_1 = customtkinter.CTkLabel(master=self.frame_right,
                                                     text="No Image Selected",
@@ -113,16 +116,16 @@ class App(customtkinter.CTk):
                                                    fg_color=("white", "gray38"),  # <- custom tuple-color
                                                    justify=tkinter.LEFT)
 
-        self.label_info_1.grid(column=0, row=7, sticky="nwe", padx=15, pady=15)
-
+        # from row 1 to 8, column 2 to 3
+        self.label_info_1.grid(row=1, column=2, rowspan=7, columnspan=2, pady=10, padx=10, sticky="nsew")
         self.label_info_2 = customtkinter.CTkLabel(master=self.frame_right,
                                                     text="No Output Image",
                                                     height=300,
                                                    corner_radius=6,  # <- custom corner radius
                                                    fg_color=("white", "gray38"),  # <- custom tuple-color
                                                    justify=tkinter.RIGHT)
-        self.label_info_2.grid(column=1, row=1, sticky="w", padx=15, pady=15)
-
+        # from row 1 to 8, column 0 to 1
+        self.label_info_2.grid(row=1, column=0, rowspan=7, columnspan=2, pady=10, padx=10, sticky="nsew")
         self.label_time = customtkinter.CTkLabel(master=self.frame_right,
                                                 text= f"Executed Time: {self.time}s",
                                                 text_font=("Roboto Medium", -10))
@@ -160,6 +163,9 @@ class App(customtkinter.CTk):
         frame=np.random.randint(0,255,[100,100,3],dtype='uint8')
         img = ImageTk.PhotoImage(Image.fromarray(frame))
         App.cam = cv2.VideoCapture(0)
+        App.cam.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+        App.cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+        App.cam.set(cv2.CAP_PROP_FPS, 30)
         #cv2.namedWindow("Experience_in_AI camera")
         while True:
             ret, frame = App.cam.read()
@@ -167,6 +173,9 @@ class App(customtkinter.CTk):
             #Update the image to tkinter...
             frame=cv2.cvtColor(frame,cv2.COLOR_BGR2RGB)
             img_update = ImageTk.PhotoImage(Image.fromarray(frame))
+            #resize the image to fit the label size from row 1 to 8, column 0 to 1
+            
+            frame = cv2.resize(frame, (256, 256))
             self.label_info_1.configure(image=img_update)
             self.label_info_1.image=img_update
             self.label_info_1.update()

@@ -89,6 +89,11 @@ class App(customtkinter.CTk):
         self.label_mode = customtkinter.CTkLabel(master=self.frame_left, text="Appearance Mode:")
         self.label_mode.grid(row=9, column=0, pady=0, padx=20, sticky="w")
 
+        self.label_time = customtkinter.CTkLabel(master=self.frame_left,
+                                                text= f"Executed Time: {self.time}s",
+                                                text_font=("Roboto Medium", -10))
+        #left label_time
+        self.label_time.grid(row=7, column=0, pady=10,padx=10)
         self.optionmenu_1 = customtkinter.CTkOptionMenu(master=self.frame_left,
                                                         values=["Light", "Dark", "System"],
                                                         command=self.change_appearance_mode)
@@ -98,7 +103,7 @@ class App(customtkinter.CTk):
 
         # configure grid layout (8x4)
         self.frame_right.grid_rowconfigure(0, minsize=5)  # empty row with minsize as spacing
-        self.frame_right.grid_rowconfigure((1,2,3,4,5,6,7,8), weight=1)  # empty row as spacing # empty row with minsize as spacing
+        self.frame_right.grid_rowconfigure((1,2,3,4,5,6,7,8,9), weight=1)  # empty row as spacing # empty row with minsize as spacing
         self.frame_right.grid_columnconfigure(0, weight=1)  # empty column as spacing
         self.frame_right.grid_columnconfigure(1, weight=1)  # empty column as spacing
         self.frame_right.grid_columnconfigure(2, weight=1)  # empty column as spacing
@@ -133,11 +138,11 @@ class App(customtkinter.CTk):
                                                    justify=tkinter.RIGHT)
         # from row 1 to 8, column 0 to 1
         self.label_info_2.grid(row=2, column=0, rowspan=6, columnspan=2, pady=10, padx=10, sticky="nsew")
-        self.label_time = customtkinter.CTkLabel(master=self.frame_right,
-                                                text= f"Executed Time: {self.time}s",
-                                                text_font=("Roboto Medium", -10))
-        #left label_time
-        self.label_time.grid(row=8, column=0, pady=10, padx=20, sticky="w")
+        self.button_camera = customtkinter.CTkButton(master=self.frame_right,
+                                                text="take picture",
+                                                command=self.take_image)
+        #beside near label_time
+        self.button_camera.grid(row=8, column=0, pady=10, padx=20, sticky="w")                                        
 
     def camera_event(self):
         if self.switch_camera.get() == 'on':
@@ -196,10 +201,11 @@ class App(customtkinter.CTk):
     
     def keypressed(self, event):
         if event.char == '<Return>':
+            print("Enter pressed")
             self.take_image()
 
     def take_image(self):
-        while App.Frame is not None:    
+        if App.Frame is not None:    
             img_name = "opencv_frame_{}.png".format(App.img_counter)
             cv2.imwrite(img_name, App.Frame)
             print("{} written!".format(img_name))
@@ -207,5 +213,5 @@ class App(customtkinter.CTk):
 
 if __name__ == "__main__":
     app = App()
-    app.bind("<Return>", app.keypressed)
+    app.bind('<Return>', app.keypressed)
     app.mainloop()

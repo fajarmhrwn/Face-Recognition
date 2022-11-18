@@ -16,6 +16,8 @@ class App(customtkinter.CTk):
     HEIGHT = 1200
     time = 0
     cam = None
+    Frame = None
+    img_counter = 0
     def __init__(self):
         super().__init__()
         
@@ -101,36 +103,42 @@ class App(customtkinter.CTk):
         self.frame_right.grid_columnconfigure(1, weight=1)  # empty column as spacing
         self.frame_right.grid_columnconfigure(2, weight=1)  # empty column as spacing
         self.frame_right.grid_columnconfigure(3, weight=1)  # empty column as spacing
-        
+
         self.label_5 = customtkinter.CTkLabel(master=self.frame_right,
                                                 text="Face Recognition",
                                                 text_font=("Roboto Bold", -32))
         # center label_5 in frame_right
-        self.label_5.grid(row=0, column=0, columnspan=4, pady=10, padx=10, sticky="nsew")  
+        self.label_5.grid(row=0, column=0, columnspan=4, pady=10, padx=10, sticky="nsew")
 
+        self.label_title = customtkinter.CTkLabel(master=self.frame_right,text="Test Image",text_font=("Roboto Bold", -20))
+        self.label_title.grid(row=1, column=0, columnspan=2, pady=10, padx=10, sticky="nsew")
+
+        self.label_title_1 = customtkinter.CTkLabel(master=self.frame_right,text="Closest Result",text_font=("Roboto Bold", -20))
+        self.label_title_1.grid(row=1, column=2, columnspan=2, pady=10, padx=10, sticky="nsew")
 
         self.label_info_1 = customtkinter.CTkLabel(master=self.frame_right,
-                                                    text="No Image Selected",
+                                                    text="No Output Image",
                                                    height=300,
                                                    corner_radius=6,  # <- custom corner radius
                                                    fg_color=("white", "gray38"),  # <- custom tuple-color
                                                    justify=tkinter.LEFT)
 
         # from row 1 to 8, column 2 to 3
-        self.label_info_1.grid(row=1, column=2, rowspan=7, columnspan=2, pady=10, padx=10, sticky="nsew")
+        self.label_info_1.grid(row=2, column=2, rowspan=6, columnspan=2, pady=10, padx=10, sticky="nsew")
         self.label_info_2 = customtkinter.CTkLabel(master=self.frame_right,
-                                                    text="No Output Image",
+                                                    text="No Image Selected",
                                                     height=300,
                                                    corner_radius=6,  # <- custom corner radius
                                                    fg_color=("white", "gray38"),  # <- custom tuple-color
                                                    justify=tkinter.RIGHT)
         # from row 1 to 8, column 0 to 1
-        self.label_info_2.grid(row=1, column=0, rowspan=7, columnspan=2, pady=10, padx=10, sticky="nsew")
+        self.label_info_2.grid(row=2, column=0, rowspan=6, columnspan=2, pady=10, padx=10, sticky="nsew")
         self.label_time = customtkinter.CTkLabel(master=self.frame_right,
                                                 text= f"Executed Time: {self.time}s",
                                                 text_font=("Roboto Medium", -10))
         #left label_time
         self.label_time.grid(row=8, column=0, pady=10, padx=20, sticky="w")
+
     def camera_event(self):
         if self.switch_camera.get() == 'on':
             self.switch_camera.configure(text="Camera ON")
@@ -160,8 +168,6 @@ class App(customtkinter.CTk):
         self.destroy()
 
     def opencamera(self):
-        frame=np.random.randint(0,255,[100,100,3],dtype='uint8')
-        img = ImageTk.PhotoImage(Image.fromarray(frame))
         App.cam = cv2.VideoCapture(0)
         App.cam.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
         App.cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
@@ -169,34 +175,37 @@ class App(customtkinter.CTk):
         #cv2.namedWindow("Experience_in_AI camera")
         while True:
             ret, frame = App.cam.read()
-
+            App.Frame = frame
             #Update the image to tkinter...
-            frame=cv2.cvtColor(frame,cv2.COLOR_BGR2RGB)
-            img_update = ImageTk.PhotoImage(Image.fromarray(frame))
-            #resize the image to fit the label size from row 1 to 8, column 0 to 1
-            
-            frame = cv2.resize(frame, (256, 256))
-            self.label_info_1.configure(image=img_update)
-            self.label_info_1.image=img_update
-            self.label_info_1.update()
+            frame_tkinter=cv2.cvtColor(frame,cv2.COLOR_BGR2RGB)
+            img_update = ImageTk.PhotoImage(Image.fromarray(frame_tkinter))
+            #configure padding lael_info_2 to 0
+            self.label_info_2.configure(image=img_update, padx=0, pady=0)
+            self.label_info_2.image=img_update
+            self.label_info_2.update()
 
             if not ret:
                 print("failed to grab frame")
                 break
-
-            k = cv2.waitKey(1)
-            if k%256 == 27:
-                # ESC pressed
-                print("Escape hit, closing...")
-
-                App.cam.release()
-                cv2.destroyAllWindows()
-                break
     def stopcamera(self):
         App.cam.release()
         cv2.destroyAllWindows()
+        self.label_info_2.configure(image="")
+        self.label_info_2.image=""
+        self.label_info_2.update()
+    
+    def keypressed(self, event):
+        if event.char == '<Return>':
+            self.take_image()
 
+    def take_image(self):
+        while App.Frame is not None:    
+            img_name = "opencv_frame_{}.png".format(App.img_counter)
+            cv2.imwrite(img_name, App.Frame)
+            print("{} written!".format(img_name))
+            App.img_counter += 1
 
 if __name__ == "__main__":
     app = App()
+    app.bind("<Return>", app.keypressed)
     app.mainloop()

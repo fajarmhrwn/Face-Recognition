@@ -94,50 +94,40 @@ class App(customtkinter.CTk):
 
         # ============ frame_right ============
 
-        # configure grid layout (3x7)
-        self.frame_right.rowconfigure((0, 1, 2, 3), weight=1)
-        self.frame_right.rowconfigure(7, weight=10)
-        self.frame_right.columnconfigure((0, 1), weight=1)
-        self.frame_right.columnconfigure(2, weight=0)
-
-        self.frame_info = customtkinter.CTkFrame(master=self.frame_right)
-        self.frame_info.grid(row=0, column=0, columnspan=2, rowspan=4, pady=20, padx=20, sticky="nsew")
+        # configure grid layout (2x8)
+        
 
         # ============ frame_info ============
 
         # configure grid layout (1x1)
-        self.frame_info.rowconfigure(0, weight=1)
-        self.frame_info.rowconfigure(1, weight=1)
-        self.frame_info.columnconfigure(0, weight=1)
-        self.frame_info.columnconfigure(1, weight=1)
         
-        self.label_5 = customtkinter.CTkLabel(master=self.frame_info,
+        self.label_5 = customtkinter.CTkLabel(master=self.frame_right,
                                                 text="Face Recognition",
                                                 text_font=("Roboto Bold", -32))
         self.label_5.grid(row=0, column=0, columnspan=2, pady=10, padx=10, sticky="nsew")
 
-        self.label_info_1 = customtkinter.CTkLabel(master=self.frame_info,
+        self.label_info_1 = customtkinter.CTkLabel(master=self.frame_right,
                                                     text="No Image Selected",
                                                    height=300,
                                                    corner_radius=6,  # <- custom corner radius
                                                    fg_color=("white", "gray38"),  # <- custom tuple-color
                                                    justify=tkinter.LEFT)
 
-        self.label_info_1.grid(column=0, row=1, sticky="nwe", padx=15, pady=15)
+        self.label_info_1.grid(column=0, row=7, sticky="nwe", padx=15, pady=15)
 
-        self.label_info_2 = customtkinter.CTkLabel(master=self.frame_info,
+        self.label_info_2 = customtkinter.CTkLabel(master=self.frame_right,
                                                     text="No Output Image",
                                                     height=300,
                                                    corner_radius=6,  # <- custom corner radius
                                                    fg_color=("white", "gray38"),  # <- custom tuple-color
-                                                   justify=tkinter.LEFT)
-        self.label_info_2.grid(column=1, row=1, sticky="nwe", padx=15, pady=15)
+                                                   justify=tkinter.RIGHT)
+        self.label_info_2.grid(column=1, row=1, sticky="w", padx=15, pady=15)
 
         self.label_time = customtkinter.CTkLabel(master=self.frame_right,
                                                 text= f"Executed Time: {self.time}s",
                                                 text_font=("Roboto Medium", -10))
         #left label_time
-        self.label_time.grid(row=4, column=0, pady=10, padx=20, sticky="w")
+        self.label_time.grid(row=8, column=0, pady=10, padx=20, sticky="w")
     def camera_event(self):
         if self.switch_camera.get() == 'on':
             self.switch_camera.configure(text="Camera ON")

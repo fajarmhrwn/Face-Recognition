@@ -4,12 +4,20 @@ import os
 import cv2
 from tabulate import tabulate
 
+def getNorm(m):
+    #Mendapatkan norm dari matriks
+    matrix = np.square(m)
+    matrix = np.sum(matrix)
+    matrix = np.sqrt(matrix)
+    
+    return matrix
+
 def checkConverge(arr,arr_prev):
     # Mengecek nilai elemen matriks apakah konvergen menuju suatu nilai
     # print(np.linalg.norm(arr_prev-arr))
     for i in range(len(arr)):
         for j in range(len(arr)):
-            if ( np.linalg.norm(arr_prev-arr)> 10000): # Parameter dapat diubah sesuai tingkat akurasi
+            if (getNorm(arr_prev-arr)> 10000): # Parameter dapat diubah sesuai tingkat akurasi
                 return False
     return True
 

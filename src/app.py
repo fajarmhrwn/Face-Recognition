@@ -1,3 +1,4 @@
+import time
 import tkinter
 import tkinter.messagebox
 from tkinter import filedialog
@@ -10,14 +11,21 @@ import customtkinter
 customtkinter.set_appearance_mode("System")  # Modes: "System" (standard), "Dark", "Light"
 customtkinter.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"
 
+def wait():
+    for i in range(0,1000):
+        print(i)
+
 
 class App(customtkinter.CTk):
+    image_camera = None
+    Folder = None
+    image_file = None
     WIDTH = 1600
     HEIGHT = 1200
-    time = 0
     cam = None
     Frame = None
     img_counter = 0
+    state = False
     def __init__(self):
         super().__init__()
         
@@ -90,7 +98,7 @@ class App(customtkinter.CTk):
         self.label_mode.grid(row=9, column=0, pady=0, padx=20, sticky="w")
 
         self.label_time = customtkinter.CTkLabel(master=self.frame_left,
-                                                text= f"Executed Time: {self.time}s",
+                                                text= f"Executed Time: 0 s",
                                                 text_font=("Roboto Medium", -10))
         #left label_time
         self.label_time.grid(row=7, column=0, pady=10,padx=10)
@@ -159,12 +167,18 @@ class App(customtkinter.CTk):
         self.label_2.configure(text=folder[0:20] + "...")
     
     def openFile(self):
+        self.label_time.configure(text="Executed Time : 0 s")
         file = filedialog.askopenfilename()
         print(file)
+        App.image_file = file
         self.label_4.configure(text=file[0:20] + "...")
         self.img = Image.open(file)
         self.imgtk = ImageTk.PhotoImage(self.img.resize((256, 256)))
-        self.label_info_1.configure(image=self.imgtk)
+        self.label_info_2.configure(image=self.imgtk)
+        self.label_info_2.image = self.imgtk
+        self.outputimage()
+            
+
 
     def change_appearance_mode(self, new_appearance_mode):
         customtkinter.set_appearance_mode(new_appearance_mode)
@@ -173,6 +187,9 @@ class App(customtkinter.CTk):
         self.destroy()
 
     def opencamera(self):
+        self.label_time.configure(text="Executed Time : 0 s")
+        self.label_2.configure(text="No Folder Selected")
+        self.label_4.configure(text="No File Selected")
         App.cam = cv2.VideoCapture(0)
         App.cam.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
         App.cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
@@ -192,12 +209,18 @@ class App(customtkinter.CTk):
             if not ret:
                 print("failed to grab frame")
                 break
+        App.image_camera = None
+        App.image_file = None
     def stopcamera(self):
         App.cam.release()
         cv2.destroyAllWindows()
         self.label_info_2.configure(image="")
         self.label_info_2.image=""
         self.label_info_2.update()
+        App.image_camera = None
+        App.image_file = None
+        self.label_time.configure(text="Executed Time : 0 s")
+
     
     def keypressed(self, event):
         if event.char == '<Return>':
@@ -207,11 +230,41 @@ class App(customtkinter.CTk):
     def take_image(self):
         if App.Frame is not None:    
             img_name = "opencv_frame_{}.png".format(App.img_counter)
+            App.image_camera = img_name
             cv2.imwrite(img_name, App.Frame)
             print("{} written!".format(img_name))
             App.img_counter += 1
+        self.outputimage()
+    
+
+    def outputimage(self):
+        #input image from camera or file
+        #output image to label_info_2
+        if App.image_camera is not None:
+            self.img = Image.open(App.image_camera)
+            self.imgtk = ImageTk.PhotoImage(self.img.resize((640, 480)))
+            start_time = time.time()
+            wait()
+            self.label_info_1.configure(image=self.imgtk)
+            self.label_info_1.image=self.imgtk
+            self.label_info_1.update()
+            self.label_time.configure(text="Executed Time: {:.2f} s".format(time.time() - start_time))
+            print("output image from camera")
+        elif App.image_file is not None:
+            self.img = Image.open(App.image_file)
+            self.imgtk = ImageTk.PhotoImage(self.img.resize((256, 256)))
+            start_time = time.time()
+            wait()
+            self.label_info_1.configure(image=self.imgtk)
+            self.label_info_1.image=self.imgtk
+            self.label_info_1.update()
+            self.label_time.configure(text="Executed Time: {:.2f} s".format(time.time() - start_time))
+            print("output image from file")
+        else:
+            print("No image selected")
+        
 
 if __name__ == "__main__":
     app = App()
-    app.bind('<Return>', app.keypressed)
     app.mainloop()
+

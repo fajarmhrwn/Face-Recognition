@@ -27,23 +27,29 @@ def getMean(pth):
         mean[i] /= c
     return mean
 
-def getCovariance(mean,pth):
+def getCovariance(mean,pth,Nfoto):
     # Mencari nilai matriks kovarian dari input matriks mean
-    mean = np.reshape(mean,(256,256))
+    # mean = np.reshape(mean,(256,256))
+    # mean = np.transpose(mean)
     c=0
     path = r"test/pins_dataset/" + pth #"test/pins_dataset" itu nama foldernya
     temp = os.listdir(path)
-    cov = np.zeros((256, 256))
-    selisih = np.zeros((256, 256))
+    cov = np.empty([0,256* 256])
     for file in temp:
         a = convertImage("test/pins_dataset/"+pth+"/"+file)
-        a = np.reshape(a,(256,256))
+        # a = np.transpose(a)
+        # a = np.reshape(a,(256,256))
         c+=1
         selisih = np.subtract(a,mean)
-        selisihTranspose = np.transpose(selisih)
+        selisih = np.reshape(selisih,[1,256*256])
+        # print(np.shape(cov), np.shape(selisih))
+        cov = np.append(cov,selisih, axis=0)
+        # print(cov,"fsdffsdfsf")
+        # selisihTranspose = np.transpose(selisih)
         # Sesuai persamaan covariant
-        cov = np.add(cov,np.matmul(selisih,selisihTranspose))
-    cov = cov/c
+        # cov = np.add(cov,np.matmul(selisih,selisihTranspose))
+    
+    cov = np.matmul(cov,np.transpose(cov))
     return cov
 
 def getBanyakFoto(pth):
@@ -60,9 +66,9 @@ def getBanyakFoto(pth):
 in_folder_name = input("Masukkan nama folder dataset: ")
 NFoto = getBanyakFoto(in_folder_name)
 a = getMean(in_folder_name) 
-b = getCovariance(a,in_folder_name) 
-# print(b)
-c = findeigenface(b,in_folder_name)
+b = getCovariance(a,in_folder_name,NFoto) 
+print(b,np.shape(b))
+c = findeigenfaces(b,in_folder_name,a)
 # print(c)
 plt.imshow(c,cmap='gray')
 plt.show()

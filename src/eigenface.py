@@ -40,14 +40,17 @@ def eigen_qr_practical(A):
         if(checkConverge(Ak,Ak_copy)):
             # print(QQ)
             break
-    return QQ # QQ adalah eigenvektor
+    return Ak,QQ # QQ adalah eigenvektor
 
-def getEigenFace(V,path):
+def getEigenFace(V,path,mean):
     temp = os.listdir(path)
     EF = np.zeros((len(V),len(V)))
     for file in temp:
         a = convertImage(path+"/"+file)
         a = np.reshape(a,(256,256))
+        mean = np.reshape(mean,(256,256))
+        a = a-mean
+
         EF += np.matmul(V,a)
     return EF
 
@@ -60,8 +63,10 @@ def convertImage(imagename):
     converted = greyscaleimg.flatten()
     return converted
 
-def findeigenface(A,pth):
+def findeigenface(A,pth,mean):
     path = r"test/pins_dataset/" + pth #"test/pins_dataset" itu nama foldernya
-    eigenVectorMat = eigen_qr_practical(A)
-    eigenfaceMat = getEigenFace(eigenVectorMat,path)
+    eigenValueMat,eigenVectorMat = eigen_qr_practical(A)
+    print(eigenValueMat,eigenVectorMat)
+    print(np.diagonal(eigenValueMat))
+    eigenfaceMat = getEigenFace(eigenVectorMat,path,mean)
     return eigenfaceMat

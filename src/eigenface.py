@@ -42,6 +42,7 @@ def getEigenFace(V,path,mean):
         a = np.reshape(a,(256,256))
         mean = np.reshape(mean,(256,256))
         a = a-mean
+
         EF += np.matmul(V,a)
     return EF
 

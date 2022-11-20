@@ -115,7 +115,7 @@ def list_eigenface(path):
                 tempPath = os.path.join(dirPath, fileNames)
                 image = cv2.imread(tempPath, 0) # foto grayscale yang udah 256x256
                 convertedImage = convertImage(tempPath)
-                print(convertedImage.shape)
+                # print(convertedImage.shape)
                 allImage= np.column_stack((allImage, convertedImage.reshape(256*256, 1)))
     
     mean_subtracted = allImage - allImage.mean(axis=1, keepdims=True)

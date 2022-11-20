@@ -61,26 +61,33 @@ def getBanyakFoto(pth):
         c += 1
     return c
 
+def getNearestImage(path):
+    path = r"test/input/" + path #"pins_dataset" itu nama foldernya
+    temp = os.listdir(path)
+    a = convertImage("test/input/"+temp)
+    
+
 
 
 in_folder_name = input("Masukkan nama folder dataset: ")
-
+    
 
 eigenface = list_eigenface(in_folder_name)
 
 print(eigenface,eigenface.shape)
 #show one of image
 #reshape to 256x256
-img = np.reshape(eigenface[:,4],(256,256))
-img *= 255/img.max()
-plt.imshow(img, cmap='gray')
-#save image
-cv2.imwrite("hasil.jpg",img)
+for i in range(10):
+    img = np.reshape(eigenface[:,i+1],(256,256))
+    img *= 255/img.max()
+    plt.imshow(img, cmap='gray')
+    #save image
+    cv2.imwrite("hasil"+ str(i) + ".jpg",img)
+
+file_input = input("Masukkan nama file foto input di folder test/input : ")
+getNearestImage(file_input)
 
 
-
-
-    
 
 # out_file = open("test\meanface\\"+  in_folder_name +".txt", "w+")
 # content = str(a)

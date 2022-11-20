@@ -9,8 +9,8 @@ def convertImage(imagename):
     image = cv2.imread(imagename)
     image = cv2.resize(image, (256, 256), interpolation = cv2.INTER_AREA)
     greyscaleimg = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    converted = greyscaleimg.flatten()
-    return converted
+    
+    return greyscaleimg
 
 def getMean(pth):
     # Mencari rata rata matriks dari sekumpulan foto yang diubah ke matriks
@@ -64,14 +64,18 @@ def getBanyakFoto(pth):
 
 
 in_folder_name = input("Masukkan nama folder dataset: ")
-NFoto = getBanyakFoto(in_folder_name)
-a = getMean(in_folder_name) 
-b = getCovariance(a,in_folder_name,NFoto) 
-print(b,np.shape(b))
-c = findeigenfaces(b,in_folder_name,a)
-# print(c)
-plt.imshow(c,cmap='gray')
-plt.show()
+
+
+eigenface = list_eigenface(in_folder_name)
+
+print(eigenface,eigenface.shape)
+#show one of image
+test = eigenface[:,0]
+print(test)
+reshape = np.reshape(test,[256,256])
+plt.imshow(reshape)
+
+
 
 
     

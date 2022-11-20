@@ -79,7 +79,6 @@ def list_eigenface(path):
                 convertedImage = convertImage(tempPath)
                 # print(convertedImage.shape)
                 allImage= np.column_stack((allImage, convertedImage.reshape(256*256, 1)))
-    
     mean_subtracted = allImage - allImage.mean(axis=1, keepdims=True)
     redCov = np.matmul(np.transpose(mean_subtracted),mean_subtracted)
     eigenvalue, eigenvector = eigen_qr_practical(redCov)
@@ -94,7 +93,7 @@ def list_eigenface(path):
         temp = np.matmul(mean_subtracted, np.transpose([redEigenVector[:, i]]))
         bestEigenVectorsOfCov = np.column_stack((bestEigenVectorsOfCov, temp))
     
-    return bestEigenVectorsOfCov
+    return eigenvector[:,:grthnOne],bestEigenVectorsOfCov
 
 
 def cropAllImage(path):

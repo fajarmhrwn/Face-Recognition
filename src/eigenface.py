@@ -2,7 +2,6 @@
 import numpy as np
 import os
 import cv2
-from tabulate import tabulate
 
 def getNorm(m):
     #Mendapatkan norm dari matriks
@@ -43,18 +42,6 @@ def eigen_qr_practical(A):
             break
     return Ak,QQ # QQ adalah eigenvektor
 
-def getEigenFace(V,path,mean):
-    # Mencari eigenface dari matriks eigenvektor
-    temp = os.listdir(path)
-    EF = np.zeros((len(V),len(V)))
-    for file in temp:
-        a = convertImage(path+"/"+file)
-        a = np.reshape(a,(256,256))
-        mean = np.reshape(mean,(256,256))
-        a = a-mean
-        EF += np.matmul(a,V)
-    return EF
-
 
 def convertImage(imagename):
     # Mengubah image menjadi matriks n*n x 1
@@ -64,46 +51,22 @@ def convertImage(imagename):
     converted = greyscaleimg.flatten()
     return converted
 
-def findeigenface(A,pth,mean):
-    # Mencari eigenface untuk satu dataset  
-    path = r"test/pins_dataset/" + pth #"test/pins_dataset" itu nama foldernya
-    eigenValueMat,eigenVectorMat = eigen_qr_practical(A)
-    print(eigenValueMat,eigenVectorMat)
-    print(np.diagonal(eigenValueMat))
-    eigenfaceMat = getEigenFace(eigenVectorMat,path,mean)
-    return eigenfaceMat
 
-
-def getEignValuesVectors(Matrix):
-    """ 
-    return all eign value and vectors of A by 
-    Simultaneous power iteration method 
-    """
-    rowNum = Matrix.shape[0] 
-
-    # Initialize the eigenvectors
-    # *** QR decomposition ***
-    Q = np.random.rand(rowNum, rowNum) 
-    Q, _ = np.linalg.qr(Q)
-    Q_prev = np.zeros((rowNum, rowNum)) # Initialize previous Q
-
-    # Initialize the eigenvalues
-    eVal = np.zeros(rowNum) 
-    
-    # Iterate until convergence
-    while np.linalg.norm(Q - Q_prev) > 1e-10: # Convergence criterion
-        # *** Update previous Q ***
-        Q_prev = Q 
-
-        # Compute the matrix-by-vector product AZ
-        Z = Matrix.dot(Q) 
-        # Compute the QR factorization of Z
-        Q, _ = np.linalg.qr(Z) 
-
-        # Update the eigenvalues
-        eVal = np.diag(Q.T.dot(Matrix.dot(Q)))
-    return eVal, Q
-
+def cropimage(image):
+    # Mengcrop image agar hanya mengambil bagian wajah
+    frame = cv2.imread(image)
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    face_cascade = cv2.CascadeClassifier('src/face.xml')
+    faces = face_cascade.detectMultiScale(gray, 1.1, 4)
+    if len(faces) > 0:
+        for (x, y, w, h) in faces:
+            crop_img = frame[y:y+h+10, x:x+w+10]
+            cv2.imwrite(image, crop_img)
+            return image
+    else:
+        print("Tidak ada")
+        os.remove(image)
+        return image
 
 def list_eigenface(path):
     # Mencari eigenface untuk semua dataset
@@ -113,7 +76,6 @@ def list_eigenface(path):
     for (dirPath, dirNames, file) in os.walk(temp):
         for fileNames in file :
                 tempPath = os.path.join(dirPath, fileNames)
-                image = cv2.imread(tempPath, 0) # foto grayscale yang udah 256x256
                 convertedImage = convertImage(tempPath)
                 # print(convertedImage.shape)
                 allImage= np.column_stack((allImage, convertedImage.reshape(256*256, 1)))
@@ -135,3 +97,14 @@ def list_eigenface(path):
     return bestEigenVectorsOfCov
 
 
+def cropAllImage(path):
+    # Mengcrop semua image
+    print("Mengcrop semua image")
+    temp = f"test/pins_dataset/{path}"
+    for (dirPath, dirNames, file) in os.walk(temp):
+        for fileNames in file :
+                tempPath = os.path.join(dirPath, fileNames)
+                cropimage(tempPath)
+    print("Selesai crop semua image")
+
+cropAllImage("test2")

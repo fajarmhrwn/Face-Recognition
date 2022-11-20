@@ -115,14 +115,15 @@ def list_eigenface(path):
                 tempPath = os.path.join(dirPath, fileNames)
                 image = cv2.imread(tempPath, 0) # foto grayscale yang udah 256x256
                 convertedImage = convertImage(tempPath)
+                print(convertedImage.shape)
                 allImage= np.column_stack((allImage, convertedImage.reshape(256*256, 1)))
     
     mean_subtracted = allImage - allImage.mean(axis=1, keepdims=True)
     redCov = np.matmul(np.transpose(mean_subtracted),mean_subtracted)
-    eigenvalue, eigenvector = getEignValuesVectors(redCov)
+    eigenvalue, eigenvector = eigen_qr_practical(redCov)
     # multiply with eigen vector
     grthnOne = 0
-    for i in eigenvalue:
+    for i in eigenvalue.diagonal():
         if i > 1:
             grthnOne += 1
     redEigenVector = eigenvector[:, :grthnOne]

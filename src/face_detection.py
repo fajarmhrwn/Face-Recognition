@@ -70,10 +70,12 @@ eigenface = list_eigenface(in_folder_name)
 
 print(eigenface,eigenface.shape)
 #show one of image
-test = eigenface[:,0]
-print(test)
-reshape = np.reshape(test,[256,256])
-plt.imshow(reshape)
+#reshape to 256x256
+img = np.reshape(eigenface[:,4],(256,256))
+img *= 255/img.max()
+plt.imshow(img, cmap='gray')
+#save image
+cv2.imwrite("hasil.jpg",img)
 
 
 

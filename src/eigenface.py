@@ -1,11 +1,10 @@
-# Algoritma eigenface , ngitung eigenvalue pake QR algorithm
 import numpy as np
 import os
 import cv2
 from matplotlib import pyplot as plt
 
 def getNorm(m):
-    #Mendapatkan norm dari matriks
+    '''Mendapatkan norm dari matriks'''
     matrix = np.square(m)
     matrix = np.sum(matrix)
     matrix = np.sqrt(matrix)
@@ -13,109 +12,101 @@ def getNorm(m):
     return matrix
 
 def checkConverge(arr,arr_prev):
-    # Mengecek nilai elemen matriks apakah konvergen menuju suatu nilai
-    # print(np.linalg.norm(arr_prev-arr))
+    ''' Mengecek nilai elemen matriks apakah konvergen menuju suatu nilai '''
     for i in range(len(arr)):
         for j in range(len(arr)):
             if (getNorm(arr_prev-arr)> 10000): # Parameter dapat diubah sesuai tingkat akurasi
                 return False
     return True
 
-def eigen_qr_practical(A):
-    # Algoritma QR untuk mencari eigenvalue dan eigenvector
-    Ak = np.copy(A)
-    n = Ak.shape[0]
+def getEigenValueVector(A):
+    ''' Algoritma QR untuk mencari eigenvalue dan eigenvector , dimana matriks Ak akan konvergen menuju matriks schur '''
+    copyMatrix = np.copy(A)
+    n = copyMatrix.shape[0]
     QQ = np.eye(n)
     i = 0
     while(True):
-        # s_k is the last item of the first diagonal
-        Ak_copy = np.copy(Ak)
-        s = Ak.item(n-1, n-1)
+        copyMatrix_copy = np.copy(copyMatrix)
+        s = copyMatrix.item(n-1, n-1)
         smult = s * np.eye(n)
-        # pe perform qr and subtract smult
-        Q, R = gram_schmidt((Ak - smult))
-        # we add smult back in
-        Ak = np.add(R @ Q, smult)
+        # Dengan metode gram schmidt dilcopyMatrixukan dekomposisi QR
+        Q, R = gram_schmidt((copyMatrix - smult))
+        # smult dikembalikan nilainya
+        copyMatrix = np.add(R @ Q, smult)
         QQ = QQ @ Q
         i += 1
-        if(checkConverge(Ak,Ak_copy)):
-            # print(QQ)
+        if(checkConverge(copyMatrix,copyMatrix_copy)):
+            # Cek parameter konvergen 
             break
-    return Ak,QQ # QQ adalah eigenvektor
+    return copyMatrix,QQ # QQ adalah eigenvektor , copyMatrix adalah matrix yang diagonalnnya eigenvalue
 
 def gram_schmidt(A):
-    '''Perform QR decomposition of matrix A using Gram-Schmidt process.'''
-    (num_rows, num_cols) = np.shape(A)
-    
+    '''Algoritma QR menggunakan metode gram schmidt, mengeluarkan hasil dekomposisi matriks A'''  
+    if len(A) != 0 :
+        Q = np.empty([len(A), len(A)])
+        counter = 0
 
-    # Initialize empty orthogonal matrix Q.
-    Q = np.empty([len(A), len(A)])
-    counter = 0
+        # Mencari Matrix Orthogonal
+        for a in A.T:
 
-    # Compute orthogonal matrix Q.
-    for a in A.T:
+            u = np.copy(a)
+            for i in range(0, counter):
+                proj = np.dot(np.dot(Q[:, i].T , a) , Q[:, i])
+                u -= proj
 
-        u = np.copy(a)
-        for i in range(0, counter):
-            # print(np.shape((Q[:, i].T)), np.shape(a))
-            proj = np.dot(np.dot(Q[:, i].T , a) , Q[:, i])
-            u -= proj
+            e = u / getNorm(u)
+            Q[:, counter] = e
 
-        e = u / getNorm(u)
-        Q[:, counter] = e
+            counter += 1 
 
-        counter += 1  # Increase columns counter.
+        # menghitung matriks segitiga atas
+        R = np.dot(Q.T, A)
 
-    # Compute upper triangular matrix R.
-    R = np.dot(Q.T, A)
-
-    return Q, R
+        return Q, R
+    else:
+        print("Image tidak kedetect")
 
 
 def convertImage(imagename):
-    # Mengubah image menjadi matriks n*n x 1
+    '''Mengubah image menjadi matriks n*n x 1'''
     image = cv2.imread(imagename)
     image = cv2.resize(image, (256, 256), interpolation = cv2.INTER_AREA)
     greyscaleimg = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     converted = greyscaleimg.flatten()
     return converted
 
-#ini buat ngambil nilai linear kombinasi dari setiap gamabar di dataset
-#normalizedDataset = mean subtracted
-def getLinComMatrix(bestEigenVector, normalizedDataSet) :
-    CoefOfLinComMatrix = np.empty((len(bestEigenVector[0]),0), float)
 
+def getMatrixCoef(bestEigenVector, normalizedDataSet) :
+    '''Menghasilkan List kombinasi linier dari normalized matriks yang ada pada dataset
+        ,List ini berbentuk (<banyakeigenface>,<banyakgambar>)'''
+    CoefOfLinComMatrix = np.empty((len(bestEigenVector[0]),0), float)
     for i in range(len(normalizedDataSet[0])) :
-        LinComOfNormalized = getLinComOfEigVector(bestEigenVector, np.transpose([normalizedDataSet[:,i]]))
+        LinComOfNormalized = getCoef(bestEigenVector, np.transpose([normalizedDataSet[:,i]]))
         CoefOfLinComMatrix = np.column_stack((CoefOfLinComMatrix, LinComOfNormalized))
-    
     return CoefOfLinComMatrix
 
-#ini buat ngambil nilai linear kombinasi dari setiap gamabar di dataset nanti disimpan disuatu file
 
-#Linear kombinasi dari satu gambar
-def getLinComOfEigVector(bestEigenVectorsOfCov, imageVectorInput) :
-    x = bestEigenVectorsOfCov
-    # x = (256*256, 1)
-    y = np.transpose(imageVectorInput)# ini matriks 1 , 256*256
-    linCom = np.transpose([np.linalg.lstsq(x, y[0], rcond=None)[0]])
-    return linCom
+def getCoef(list_bestEigenface, vectorImageInput) :
+    '''Menghasilkan kombinasi linier dari normalized matriks, (<banyakeigenface>,1)'''
+    matrixCoef = np.transpose([np.linalg.lstsq(list_bestEigenface, np.transpose(vectorImageInput)[0], rcond=None)[0]])
+    return matrixCoef
 
-#inputannya tadi linear kombinasi gambar input dan matrix tadi 
-def getMinimumDistance(inputLinCom, CoefMatrix) :
-    minimum = minimum = getNorm(np.subtract(inputLinCom, np.transpose([CoefMatrix[:, 0]])))
-    for i in range(len(CoefMatrix[0])) :
-        distance = getNorm(np.subtract(inputLinCom, np.transpose([CoefMatrix[:, i]])))
-        if (distance < minimum) :
-            minimum = distance
+def nearestDistance(InputCoef, MatrixCoef) :
+    '''Mengeluarkan nilai X  minimum antara gambar input dengan gambar di data set'''
+    '''X = |I-M|, I = Matriks kombinasi linear dari input dan M = List Matriks kombinasi linear dari gambar di dataset'''
+    minimum = getNorm(np.subtract(InputCoef, np.transpose([MatrixCoef[:, 0]])))
+    for i in range(len(MatrixCoef[0])) :
+        e = getNorm(np.subtract(InputCoef, np.transpose([MatrixCoef[:, i]])))
+        if (e < minimum) :
+            minimum = e
     return minimum
 
 
 def cropimage(image):
-    # Mengcrop image agar hanya mengambil bagian wajah
+    '''Mengcrop gambar di wajah pengguna'''
     frame = cv2.imread(image)
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    face_cascade = cv2.CascadeClassifier('src/face.xml')
+    face_cascade = cv2.CascadeClassifier('src\src_feature\face.xml')
     faces = face_cascade.detectMultiScale(gray, 1.1, 4)
     if len(faces) > 0:
         for (x, y, w, h) in faces:
@@ -127,40 +118,31 @@ def cropimage(image):
         os.remove(image)
         return image
 
-def list_eigenface(mean_subtracted,all_image):
-    # Mencari eigenface untuk semua dataset
+def list_eigenface(normalizedMatrix,all_image):
+    '''Menghasilkan Matriks EigenFace dengan ukuran (256*256,<banyak eigenvector terbaik>)'''
     print("Mencari eigenface")
-    print(mean_subtracted.shape)#(256*256, 100)
-    redCov = np.matmul(np.transpose(mean_subtracted),mean_subtracted) # A'A  = (122, 122)
-    #nilai bes eigenvectornya disimpan di file
-    eigenvalue, eigenvector = eigen_qr_practical(redCov)
-    print(eigenvector.shape)
-    # multiply with eigen vector
-    grthnOne = 0
-    print(eigenvalue.diagonal())
-    for i in eigenvalue.diagonal():
-        if i > 1:
-            grthnOne += 1
-    redEigenVector = eigenvector[:, :grthnOne] #(122,121)
-    print(redEigenVector[:,0].shape)
-    print(redEigenVector)
-    print(np.transpose([redEigenVector[:,0]]).shape)
-    print(np.transpose(redEigenVector[:,0]))
-    bestEigenVectorsOfCov = np.empty((256*256, 0), float)
-    for i in range(len(redEigenVector[0])) :
-        temp = np.matmul(all_image, np.transpose([redEigenVector[:, i]]))
-        bestEigenVectorsOfCov = np.column_stack((bestEigenVectorsOfCov, temp))
+    Covariance = np.matmul(np.transpose(normalizedMatrix),normalizedMatrix) #A'A  = (<banyak gambar>, <banyak gambar>)
+    eigenvalue, eigenvector = getEigenValueVector(Covariance)  
+    print((eigenvalue.diagonal()))  
+    bestEigenVector = np.empty((len(eigenvector[0]),0), float)
+    for i in range(len(eigenvector[0])) :
+        if (eigenvalue[i][i] > 1) : # Tuning , Memilih eigenvector yang eigenvaluenya yang tidak koma
+            bestEigenVector = np.column_stack((bestEigenVector, np.transpose([eigenvector[:, i]])))
+    list_bestEigenface = np.empty((256*256, 0), float)
+    for i in range(len(bestEigenVector[0])) :
+        folderpath = np.matmul(all_image, np.transpose([bestEigenVector[:, i]]))
+        list_bestEigenface = np.column_stack((list_bestEigenface, folderpath))
     
-    print(bestEigenVectorsOfCov.shape)
-    return bestEigenVectorsOfCov
+    print(list_bestEigenface.shape)
+    return list_bestEigenface
     #ini disave
 
 def cropAllImage(path):
     # Mengcrop semua image
     print("Mengcrop semua image")
-    temp = f"test/pins_dataset/{path}"
-    print(temp)
-    for (dirPath, dirNames, file) in os.walk(temp):
+    folderpath = f"test/pins_dataset/{path}"
+    print(folderpath)
+    for (dirPath, dirNames, file) in os.walk(folderpath):
         for fileNames in file :
                 tempPath = os.path.join(dirPath, fileNames)
                 cropimage(tempPath)
@@ -168,11 +150,12 @@ def cropAllImage(path):
 
 
 
-def getClosestImage (dirPath, CoefMatrix, inputLinCom) :
-    minimum = getNorm(np.subtract(inputLinCom, np.transpose([CoefMatrix[:, 0]])))
+def outputImage (dirPath, MatrixCoef, InputCoef) :
+    "Mengeluarkan gambar yang paling mirip dengan gambar input di dataset"
+    minimum = getNorm(np.subtract(InputCoef, np.transpose([MatrixCoef[:, 0]])))
     imageOrder = 1
-    for i in range(len(CoefMatrix[0])) :
-        distance = getNorm(np.subtract(inputLinCom, np.transpose([CoefMatrix[:, i]])))
+    for i in range(len(MatrixCoef[0])) :
+        distance = getNorm(np.subtract(InputCoef, np.transpose([MatrixCoef[:, i]])))
         if (distance < minimum) :
             minimum = distance
             imageOrder = i + 1
@@ -186,36 +169,35 @@ def getClosestImage (dirPath, CoefMatrix, inputLinCom) :
                 return os.path.join(dirPath, fileNames)
 
 
-def gettrainingdataa(path):
-    temp = f"test/pins_dataset/{path}"
-    allImage = np.empty((256*256,0), float)
-    for (dirPath, dirNames, file) in os.walk(temp):
+def trainingData(path):
+    '''Menghasilkan matriks eigenface dan matriks koefisien'''
+    folderpath = path
+    A = np.empty((256*256,0), float) #Matriks Gambar (256*256,<Banyak Gambar>)
+    for (dirPath, dirNames, file) in os.walk(folderpath):
         for fileNames in file :
                 tempPath = os.path.join(dirPath, fileNames)
                 convertedImage = convertImage(tempPath)
-                # print(convertedImage.shape)
-                allImage= np.column_stack((allImage, convertedImage.reshape(256*256, 1)))
+                A= np.column_stack((A, convertedImage.reshape(256*256, 1)))
     
-    mean_subtracted = allImage - allImage.mean(axis=1, keepdims=True)
-    eigeface = list_eigenface(mean_subtracted,allImage)
-    CoefMatrix = getLinComMatrix(eigeface, mean_subtracted)
-    #save coefmatrix dan eigenface
-    # np.savetxt(f"data/coefmatrix.txt", CoefMatrix, delimiter=",")
-    # np.savetxt(f"data/eigenface.txt", eigeface, delimiter=",")
-    return CoefMatrix, eigeface
+    normalizedMatrix = A - A.mean(axis=1, keepdims=True)
+    eigeface = list_eigenface(normalizedMatrix,A)
+    MatrixCoef = getMatrixCoef(eigeface, normalizedMatrix)
+    np.savetxt(f"src/data/matriksCoef.txt", MatrixCoef, delimiter=";")
+    np.savetxt(f"src/data/eigenface.txt", eigeface, delimiter=";")
+    return MatrixCoef, eigeface
 
 
-def generateclosestimage(path, lincom_imageinput, lincomdataset):
-    # Mencari gambar terdekat
+def closestImage(path, InputCoef, MatrixCoef):
+    '''Mengluarkan Gambar yang paling mirip jika tidak ada keluarkan "Gambar tidak ditemukan" '''
     print("Mencari gambar terdekat")
-    temp = f"test/pins_dataset/{path}"
-    minimum = getMinimumDistance(lincom_imageinput, lincomdataset)
+    folderpath = f"test/pins_dataset/{path}"
+    minimum = nearestDistance(InputCoef, MatrixCoef)
     print(minimum, "min")
-    if minimum <  2 :    
+    if minimum <  0.8 :   # Tuning minimum 
         print("Gambar terdekat")
-        closestimagefile =  getClosestImage(temp, lincomdataset, lincom_imageinput)
-        print(closestimagefile)
-        return closestimagefile
+        nearestImage =  outputImage(folderpath, MatrixCoef, InputCoef)
+        print(nearestImage)
+        return nearestImage
     else:
         print(minimum)
         print("Gambar tidak ditemukan")
@@ -224,25 +206,14 @@ def generateclosestimage(path, lincom_imageinput, lincomdataset):
 
 
 def displayEigenFace(eigenFace) :
-    # Menampilkan eigenface
+    '''Menampilkan Gambar EigenFace'''
     print("Menampilkan eigenface")
     fig = plt.figure()
     for i in range(len(eigenFace[0])) :
         fig.add_subplot(10, 16, i+1)
         plt.imshow(eigenFace[:, i].reshape(256, 256), cmap='gray')
     plt.show()
-# cropimage("test/input/test_fajar.png")
-print("Mulai")
-path = input("Masukkan nama folder dataset: ")
-# cropAllImage(path)
-coefmatrix, eigenface = gettrainingdataa(path)
-displayEigenFace(eigenface)
-image_path = input("Masukkan nama file gambar: ")
-Image = convertImage("test/input/"+image_path)
-Image = Image.reshape(256*256, 1)
-lincom_imageinput = getLinComOfEigVector(eigenface, Image)
-path = generateclosestimage(path, lincom_imageinput, coefmatrix)
-#show image
-if path != None:
-    img = cv2.imread(path)
-    cv2.imwrite("test/input/1"+image_path, img)
+
+
+
+

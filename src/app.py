@@ -168,16 +168,20 @@ class App(customtkinter.CTk):
         self.label_2.configure(text=folder[0:20] + "...")
         for f in os.listdir("src\data"):
             os.remove(os.path.join("src\data", f))
-        for f in os.listdir("src\grayImage"):
-            os.remove(os.path.join("src\grayImage", f))
+            
+        # for f in os.listdir("src\grayImage"):
+        #     os.remove(os.path.join("src\grayImage", f))
+        #     print("3")
         trainingData(folder)
-        for i in os.listdir(folder):
+        # for i in os.listdir(folder):
 
-            a = convertImage(folder +f"\{i}")
-            cv2.imwrite(os.path.join("src/grayImage/" , i), a)
+        #     a = convertImage(folder +f"\{i}")
+        #     cv2.imwrite(os.path.join("src/grayImage" , i), a)
 
     
     def openFile(self):
+        App.image_file = None
+
         self.label_time.configure(text="Executed Time : 0 s")
         file = filedialog.askopenfilename()
         image_path = file
@@ -191,6 +195,7 @@ class App(customtkinter.CTk):
             print(path)
             App.image_file = path
         except:
+            App.image_file = None
             print("Dataset tidak ada")
         self.label_4.configure(text=file[0:20] + "...")
         self.img = Image.open(file)
@@ -265,7 +270,6 @@ class App(customtkinter.CTk):
             self.img = Image.open(App.image_camera)
             self.imgtk = ImageTk.PhotoImage(self.img.resize((640, 480)))
             start_time = time.time()
-            wait()
             self.label_info_1.configure(image=self.imgtk)
             self.label_info_1.image=self.imgtk
             self.label_info_1.update()
@@ -275,13 +279,15 @@ class App(customtkinter.CTk):
             self.img = Image.open(App.image_file)
             self.imgtk = ImageTk.PhotoImage(self.img.resize((256, 256)))
             start_time = time.time()
-            wait()
             self.label_info_1.configure(image=self.imgtk)
             self.label_info_1.image=self.imgtk
             self.label_info_1.update()
             self.label_time.configure(text="Executed Time: {:.2f} s".format(time.time() - start_time))
             print("output image from file")
         else:
+            self.label_info_1.configure(image="")
+            self.label_info_1.image = None
+            self.label_info_1.update()
             print("No image selected")
         
 

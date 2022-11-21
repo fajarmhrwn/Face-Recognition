@@ -123,7 +123,6 @@ def list_eigenface(normalizedMatrix,all_image):
     print("Mencari eigenface")
     Covariance = np.matmul(np.transpose(normalizedMatrix),normalizedMatrix) #A'A  = (<banyak gambar>, <banyak gambar>)
     eigenvalue, eigenvector = getEigenValueVector(Covariance)  
-    print((eigenvalue.diagonal()))  
     bestEigenVector = np.empty((len(eigenvector[0]),0), float)
     for i in range(len(eigenvector[0])) :
         if (eigenvalue[i][i] > 1) : # Tuning , Memilih eigenvector yang eigenvaluenya yang tidak koma
@@ -133,7 +132,6 @@ def list_eigenface(normalizedMatrix,all_image):
         folderpath = np.matmul(all_image, np.transpose([bestEigenVector[:, i]]))
         list_bestEigenface = np.column_stack((list_bestEigenface, folderpath))
     
-    print(list_bestEigenface.shape)
     return list_bestEigenface
     #ini disave
 
@@ -194,7 +192,7 @@ def closestImage(path, InputCoef, MatrixCoef):
     folderpath = path
     minimum = nearestDistance(InputCoef, MatrixCoef)
     print(minimum, "min")
-    if minimum <  0.8 :   # Tuning minimum 
+    if minimum > 1 :   # Tuning minimum 
         print("Gambar terdekat")
         nearestImage =  outputImage(folderpath, MatrixCoef, InputCoef)
         print(nearestImage)

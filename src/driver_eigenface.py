@@ -3,7 +3,7 @@ from eigenface import *
 print("Mulai")
 path = input("Masukkan nama folder dataset: ")
 # cropAllImage(path)
-coefmatrix, eigenface = trainingData(path)
+coefmatrix, eigenface = trainingData("test/pins_dataset/" + path)
 displayEigenFace(eigenface)
 image_path = input("Masukkan nama file gambar: ")
 Image = convertImage("test/input/"+image_path)

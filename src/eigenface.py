@@ -13,10 +13,9 @@ def getNorm(m):
 
 def checkConverge(arr,arr_prev):
     ''' Mengecek nilai elemen matriks apakah konvergen menuju suatu nilai '''
-    for i in range(len(arr)):
-        for j in range(len(arr)):
-            if (getNorm(arr_prev-arr)> 10000): # Parameter dapat diubah sesuai tingkat akurasi
-                return False
+    
+    if (getNorm(arr_prev-arr)> 50000): # Parameter dapat diubah sesuai tingkat akurasi
+            return False
     return True
 
 def getEigenValueVector(A):
@@ -124,13 +123,17 @@ def list_eigenface(normalizedMatrix,all_image):
     Covariance = np.matmul(np.transpose(normalizedMatrix),normalizedMatrix) #A'A  = (<banyak gambar>, <banyak gambar>)
     eigenvalue, eigenvector = getEigenValueVector(Covariance)  
     bestEigenVector = np.empty((len(eigenvector[0]),0), float)
+    counter = 0
     for i in range(len(eigenvector[0])) :
         if (eigenvalue[i][i] > 1) : # Tuning , Memilih eigenvector yang eigenvaluenya yang tidak koma
             bestEigenVector = np.column_stack((bestEigenVector, np.transpose([eigenvector[:, i]])))
+            # break
+        counter += 1
+    # bestEigenVector = eigenvector[:, :counter]
     list_bestEigenface = np.empty((256*256, 0), float)
     for i in range(len(bestEigenVector[0])) :
-        folderpath = np.matmul(all_image, np.transpose([bestEigenVector[:, i]]))
-        list_bestEigenface = np.column_stack((list_bestEigenface, folderpath))
+        eigenface = np.matmul(all_image, np.transpose([bestEigenVector[:, i]])) 
+        list_bestEigenface = np.column_stack((list_bestEigenface, eigenface))
     
     return list_bestEigenface
     #ini disave
@@ -192,13 +195,14 @@ def closestImage(path, InputCoef, MatrixCoef):
     folderpath = path
     minimum = nearestDistance(InputCoef, MatrixCoef)
     print(minimum, "min")
-    if minimum > 1 :   # Tuning minimum 
+    if minimum < 0.8 :   # Tuning minimum 
         print("Gambar terdekat")
         nearestImage =  outputImage(folderpath, MatrixCoef, InputCoef)
         print(nearestImage)
         return nearestImage
     else:
-        print(minimum)
+        nearestImage =  outputImage(folderpath, MatrixCoef, InputCoef)
+        print(nearestImage)
         print("Gambar tidak ditemukan")
         return None
 

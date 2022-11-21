@@ -229,7 +229,7 @@ class App(customtkinter.CTk):
 
     def take_image(self):
         if App.Frame is not None:    
-            img_name = "opencv_frame_{}.png".format(App.img_counter)
+            img_name = "test\camera\opencv_frame_{}.png".format(App.img_counter)
             App.image_camera = img_name
             cv2.imwrite(img_name, App.Frame)
             print("{} written!".format(img_name))

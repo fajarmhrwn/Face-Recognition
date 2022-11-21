@@ -118,6 +118,8 @@ def getNearestImage(dataset_folder,file_path, eigenvector, eigenface):
     return str_name_nearest
 
 
+
+
 # Start
 in_folder_name = input("Masukkan nama folder dataset: ")
 

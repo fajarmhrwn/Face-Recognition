@@ -120,15 +120,18 @@ def list_eigenface(path):
     mean_subtracted = allImage - allImage.mean(axis=1, keepdims=True)
     redCov = np.matmul(np.transpose(mean_subtracted),mean_subtracted)
     eigenvalue, eigenvector = eigen_qr_practical(redCov)
-    # multiply with eigen vector
+    '''Eliminating some eigenvectors'''
     grthnOne = 0
     for i in eigenvalue.diagonal():
         if i > 1:
             grthnOne += 1
+    '''Take the best eigenvalue bigger than 1'''
     redEigenVector = eigenvector[:, :grthnOne]
     bestEigenVectorsOfCov = np.empty((256*256, 0), float)
     for i in range(len(redEigenVector[0])) :
         temp = np.matmul(mean_subtracted, np.transpose([redEigenVector[:, i]]))
+        print("cek")
+        print(np.shape(mean_subtracted), np.shape(redEigenVector))
         bestEigenVectorsOfCov = np.column_stack((bestEigenVectorsOfCov, temp))
     
     return eigenvector[:,:grthnOne],bestEigenVectorsOfCov

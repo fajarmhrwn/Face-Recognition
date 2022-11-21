@@ -64,10 +64,8 @@ def getBanyakFoto(pth):
 
 def getNearestImage(dataset_folder,file_path, eigenvector, eigenface):
     path = f"test/input/{file_path}"#"pins_dataset" itu nama foldernya
-    tes_image = np.empty((256*256,0), float) 
     a = convertImage(path)
-    tes_image = np.column_stack((tes_image,a.reshape(256*256,1)))
-    temp = f"test/pins_dataset/{dataset_folder}"
+    temp = f"{dataset_folder}"
     allImage = np.empty((256*256,0), float)
     for (dirPath, dirNames, file) in os.walk(temp):
         for fileNames in file :
@@ -75,19 +73,15 @@ def getNearestImage(dataset_folder,file_path, eigenvector, eigenface):
                 image = cv2.imread(tempPath, 0) # foto grayscale yang udah 256x256
                 convertedImage = convertImage(tempPath)
                 # print(convertedImage.shape)
-                print(convertedImage.reshape(256*256,1))
                 allImage= np.column_stack((allImage, convertedImage.reshape(256*256, 1)))
-    
     mean = allImage.mean(axis=1, keepdims=True)
-    print(mean.shape)
-    print(mean)
-    # hasil_kurang = tes_image - mean
-    # print(hasil_kali.shape)
-    hasil_kali_test = np.empty((256*256,0), float) 
-    for i in range(len(eigenvector[0])) :
-        hasil_kali = np.matmul(hasil_kurang,np.transpose(eigenvector[:,i]))
-        hasil_kali_test = np.column_stack(hasil_kali_test, hasil_kali)
+    a = a.reshape(256*256, 1)
+    a = a - mean
+    print(np.shape(eigenvector),np.shape(mean))
+    a = np.matmul(eigenvector,a)
+    
     str_name_nearest = ""
+    
     maxNorm = 0
     temp = os.listdir(dataset_folder)
     for file in temp:
@@ -100,7 +94,6 @@ def getNearestImage(dataset_folder,file_path, eigenvector, eigenface):
 
 # Start
 in_folder_name = input("Masukkan nama folder dataset: ")
-    
 
 eigenvector, eigenface = list_eigenface(in_folder_name)
 

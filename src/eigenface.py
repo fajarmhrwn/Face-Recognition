@@ -54,11 +54,11 @@ def convertImage(imagename):
 
 #ini buat ngambil nilai linear kombinasi dari setiap gamabar di dataset
 #normalizedDataset = mean subtracted
-def getLinComMatrix(bestEigenVector, normalizedDataSet) :
-    CoefOfLinComMatrix = np.empty((len(bestEigenVector[0]),0), float)
+def getLinComMatrix(bestEigenFace, normalizedDataSet) :
+    CoefOfLinComMatrix = np.empty((len(bestEigenFace[0]),0), float)
 
     for i in range(len(normalizedDataSet[0])) :
-        LinComOfNormalized = getLinComOfEigVector(bestEigenVector, np.transpose([normalizedDataSet[:,i]]))
+        LinComOfNormalized = getLinComOfEigVector(bestEigenFace, np.transpose([normalizedDataSet[:,i]]))
         CoefOfLinComMatrix = np.column_stack((CoefOfLinComMatrix, LinComOfNormalized))
     
     return CoefOfLinComMatrix
@@ -67,21 +67,20 @@ def getLinComMatrix(bestEigenVector, normalizedDataSet) :
 
 #Linear kombinasi dari satu gambar
 def getLinComOfEigVector(bestEigenVectorsOfCov, imageVectorInput) :
-    x = bestEigenVectorsOfCov
+    # x = bestEigenVectorsOfCov
     # x = (256*256, 1)
     y = np.transpose(imageVectorInput)# ini matriks 1 , 256*256
-    linCom = np.transpose([np.linalg.lstsq(x, y[0], rcond=None)[0]])
+    linCom = np.transpose([np.linalg.lstsq(bestEigenVectorsOfCov, y[0], rcond=None)[0]])
     return linCom
 
 #inputannya tadi linear kombinasi gambar input dan matrix tadi 
-def getMinimumDistance(inputLinCom, CoefMatrix) :
-    minimum = minimum = np.linalg.norm(np.subtract(inputLinCom, np.transpose([CoefMatrix[:, 0]])))
-    for i in range(len(CoefMatrix[0])) :
-        distance = np.linalg.norm(np.subtract(inputLinCom, np.transpose([CoefMatrix[:, i]])))
-        if (distance < minimum) :
-            minimum = distance
+def MinimumValue(input_file, matrix_coefficent) :
+    minimum =  np.linalg.norm(np.subtract(input_file, np.transpose([matrix_coefficent[:, 0]])))
+    for i in range(len(matrix_coefficent[0])) :
+        e = np.linalg.norm(np.subtract(input_file, np.transpose([matrix_coefficent[:, i]])))
+        if (e < minimum) :
+            minimum = e
     return minimum
-
 
 def cropimage(image):
     # Mengcrop image agar hanya mengambil bagian wajah
@@ -105,29 +104,34 @@ def list_eigenface(mean_subtracted,all_image):
     print(mean_subtracted.shape)#(256*256, 100)
     redCov = np.matmul(np.transpose(mean_subtracted),mean_subtracted) # A'A  = (122, 122)
     #nilai bes eigenvectornya disimpan di file
-    eigenvalue, eigenvector = eigen_qr_practical(redCov)
-    print(eigenvector.shape)
-    # multiply with eigen vector
-    grthnOne = 0
-    for i in eigenvalue.diagonal():
-        if i > 1:
-            grthnOne += 1
-    redEigenVector = eigenvector[:, :grthnOne] #(122,121)
-    print(redEigenVector[:,0].shape)
-    print(redEigenVector[:,0])
-    print(np.transpose([redEigenVector[:,0]]).shape)
-    print(np.transpose(redEigenVector[:,0]))
-    bestEigenVectorsOfCov = np.empty((256*256, 0), float)
-    for i in range(len(redEigenVector[0])) :
-        temp = np.matmul(all_image, np.transpose([redEigenVector[:, i]]))
-        bestEigenVectorsOfCov = np.column_stack((bestEigenVectorsOfCov, temp))
+    eigenvalue, eigenvector = eigen_qr_practical(redCov)    # add eigenvector if its eigenvalue is greater than 1
+    bestEigenVector = np.empty((len(eigenvector[0]),0), float)
+    for i in range(len(eigenvector[0])) :
+        if (eigenvalue[i][i] > 1) :
+            bestEigenVector = np.column_stack((bestEigenVector, np.transpose([eigenvector[:, i]])))
+    # grthnOne = 0
+    # for i in eigenvalue.diagonal():
+    #     if i > 1:
+    #         grthnOne += 1
+    # redEigenVector = eigenvector[:, :grthnOne] #(122,121)
+    # print(redEigenVector)
+    # print(redEigenVector[:,0])
+    # print(np.transpose([redEigenVector[:,0]]).shape)
+    # print(np.transpose(redEigenVector[:,0]))
+    bestEigenFace = np.empty((256*256, 0), float)
+    for i in range(len(bestEigenVector[0])) :
+        temp = np.matmul(all_image, np.transpose([bestEigenVector[:, i]]))
+        bestEigenFace = np.column_stack((bestEigenFace, temp))
     
-    print(bestEigenVectorsOfCov.shape)
-    return bestEigenVectorsOfCov
+    print(bestEigenFace.shape)
+    return bestEigenFace
     #ini disave
 
+def saveconvertedimage(path, name):
+    #menyimpan 
+
 def cropAllImage(path):
-    # Mengcrop semua image
+    ''''''
     print("Mengcrop semua image")
     temp = f"test/pins_dataset/{path}"
     for (dirPath, dirNames, file) in os.walk(temp):
@@ -138,24 +142,26 @@ def cropAllImage(path):
 
 
 
-def getClosestImage (dirPath, CoefMatrix, inputLinCom) :
-    minimum = np.linalg.norm(np.subtract(inputLinCom, np.transpose([CoefMatrix[:, 0]])))
-    imageOrder = 1
-    for i in range(len(CoefMatrix[0])) :
-        distance = np.linalg.norm(np.subtract(inputLinCom, np.transpose([CoefMatrix[:, i]])))
+def ClosestImage (folderPath, matrixCoef, inputCoef) :
+    '''image order adalah urutan gambar yang paling mirip dengan input
+        minimum adalah nilai minimum dari selisih antara input dan gambar'''
+    minimum = np.linalg.norm(np.subtract(inputCoef, np.transpose([matrixCoef[:, 0]])))
+    index_gambar = 1
+    for i in range(len(matrixCoef[0])) :
+        distance = np.linalg.norm(np.subtract(inputCoef, np.transpose([matrixCoef[:, i]])))
         if (distance < minimum) :
             minimum = distance
-            imageOrder = i + 1
+            index_gambar = i + 1
 
-    count = 0
+    i = 1
     for (dirPath, dirNames, file) in os.walk(dirPath):
         for fileNames in file :
-            count += 1
-            if count == imageOrder :
+            if i == index_gambar :
                 return os.path.join(dirPath, fileNames)
+            i += 1
 
 
-def gettrainingdataa(path):
+def gettrainingdata(path):
     temp = f"test/pins_dataset/{path}"
     allImage = np.empty((256*256,0), float)
     for (dirPath, dirNames, file) in os.walk(temp):
@@ -174,15 +180,16 @@ def gettrainingdataa(path):
     return CoefMatrix, eigeface
 
 
-def generateclosestimage(path, lincom_imageinput, lincomdataset):
+def cekclosestimage(path, lincom_imageinput, lincomdataset):
+    '''mencari gambar terdekat dengan input gambar'''
+    '''Jika tidak ada gambar terdekat maka akan mengembalikan nilai 0'''
     # Mencari gambar terdekat
     print("Mencari gambar terdekat")
     temp = f"test/pins_dataset/{path}"
-    minimum = getMinimumDistance(lincom_imageinput, lincomdataset)
-    print(minimum)
+    minimum = MinimumValue(lincom_imageinput, lincomdataset)
     if minimum <  5 :    
         print("Gambar terdekat")
-        closestimagefile =  getClosestImage(temp, lincomdataset, lincom_imageinput)
+        closestimagefile =  ClosestImage(temp, lincomdataset, lincom_imageinput)
         print(closestimagefile)
         return closestimagefile
     else:
@@ -201,13 +208,14 @@ def displayEigenFace(eigenFace) :
         plt.imshow(eigenFace[:, i].reshape(256, 256), cmap='gray')
     plt.show()
 # cropimage("test/input/test_fajar.png")
-print("Mulai")
-path = input("Masukkan nama folder dataset: ")
-coefmatrix, eigenface = gettrainingdataa(path)
-displayEigenFace(eigenface)
+
 # image_path = input("Masukkan nama file gambar: ")
-# Image = convertImage("test/input/"+image_path)
-# Image = Image.reshape(256*256, 1)
+Image = convertImage("test/input/"+image_path)
+#save Image on png
+
+
+
+
 # lincom_imageinput = getLinComOfEigVector(eigenface, Image)
 # path = generateclosestimage(path, lincom_imageinput, coefmatrix)
 # #show image

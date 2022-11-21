@@ -165,17 +165,10 @@ class App(customtkinter.CTk):
         folder = filedialog.askdirectory()
         App.Folder = folder
         print(folder)
-        self.label_2.configure(text=folder[0:20] + "...")
-        for f in os.listdir("src\data"):
-            os.remove(os.path.join("src\data", f))
-        for f in os.listdir("src\grayImage"):
-            os.remove(os.path.join("src\grayImage", f))
-        trainingData(folder)
-        for i in os.listdir(folder):
-
-            a = convertImage(folder +f"\{i}")
-            cv2.imwrite(os.path.join("src/grayImage/" , i), a)
-
+        # self.label_2.configure(text=folder[0:20] + "...")
+        # for f in os.listdir("src/data"):
+        #     os.remove(os.path.join("src/data", f))
+        # trainingData(folder)
     
     def openFile(self):
         self.label_time.configure(text="Executed Time : 0 s")
@@ -183,8 +176,8 @@ class App(customtkinter.CTk):
         image_path = file
         image_file = convertImage(image_path)
         image_file = image_file.reshape(256*256, 1)
-        eigenface = np.loadtxt("src\data\eigenface.txt",delimiter=";")
-        coefmatrix = np.loadtxt("src\data\matriksCoef.txt",delimiter=";")
+        eigenface = np.loadtxt("src/data/eigenface.txt", dtype=float, delimiter=";")
+        coefmatrix = np.loadtxt("src/data/matriksCoef.txt", dtype=float, delimiter=";")
         try:
             InputCoef = getCoef(eigenface, image_file)
             path = closestImage(App.Folder, InputCoef, coefmatrix)

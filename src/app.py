@@ -5,7 +5,7 @@ from tkinter import filedialog
 from PIL import Image, ImageTk
 import numpy as np
 import cv2
-
+from eigenface import *
 import customtkinter
 
 customtkinter.set_appearance_mode("System")  # Modes: "System" (standard), "Dark", "Light"
@@ -165,11 +165,22 @@ class App(customtkinter.CTk):
         folder = filedialog.askdirectory()
         print(folder)
         self.label_2.configure(text=folder[0:20] + "...")
+        trainingData(folder)
+
     
     def openFile(self):
         self.label_time.configure(text="Executed Time : 0 s")
         file = filedialog.askopenfilename()
-        print(file)
+        image_path = file
+        Image = convertImage(image_path)
+        Image = Image.reshape(256*256, 1)
+        eigenface = np.loadtxt("src\data\eigenface.txt",delimiter=";")
+        coefmatrix = np.loadtxt("srcc\data\coefmatrix.txt",delimiter=";")
+        try:
+            InputCoef = getCoef(eigenface, Image)
+            path = closestImage(path, InputCoef, coefmatrix)
+        except:
+            print("Dataset tidak ada")
         App.image_file = file
         self.label_4.configure(text=file[0:20] + "...")
         self.img = Image.open(file)
@@ -229,7 +240,7 @@ class App(customtkinter.CTk):
 
     def take_image(self):
         if App.Frame is not None:    
-            img_name = "opencv_frame_{}.png".format(App.img_counter)
+            img_name = "test\camera\opencv_frame_{}.png".format(App.img_counter)
             App.image_camera = img_name
             cv2.imwrite(img_name, App.Frame)
             print("{} written!".format(img_name))

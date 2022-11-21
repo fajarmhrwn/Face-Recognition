@@ -165,7 +165,11 @@ class App(customtkinter.CTk):
         folder = filedialog.askdirectory()
         print(folder)
         self.label_2.configure(text=folder[0:20] + "...")
+        #remove file inside data folder
+        for filename in os.listdir("src/data"):
+            os.remove(folder + "/" + filename)
         trainingData(folder)
+
 
     
     def openFile(self):
@@ -175,7 +179,9 @@ class App(customtkinter.CTk):
         Image = convertImage(image_path)
         Image = Image.reshape(256*256, 1)
         eigenface = np.loadtxt("src\data\eigenface.txt",delimiter=";")
+        print(eigenface.shape)
         coefmatrix = np.loadtxt("srcc\data\coefmatrix.txt",delimiter=";")
+        print(coefmatrix.shape)
         try:
             InputCoef = getCoef(eigenface, Image)
             path = closestImage(path, InputCoef, coefmatrix)

@@ -172,7 +172,7 @@ def cropAllImage(path):
 
 
 def outputImage (dirPath, MatrixCoef, InputCoef) :
-    "Mengeluarkan gambar yang paling mirip dengan gambar input di dataset"
+    '''Mengeluarkan gambar yang paling mirip dengan gambar input di dataset'''
     minimum = getNorm(np.subtract(InputCoef, np.transpose([MatrixCoef[:, 0]])))
     imageOrder = 1
     for i in range(len(MatrixCoef[0])) :
@@ -215,7 +215,7 @@ def closestImage(path, InputCoef, MatrixCoef):
     folderpath = path
     minimum = nearestDistance(InputCoef, MatrixCoef)
     print(minimum, "min")
-    if minimum < 0.8 :   # Tuning minimum 
+    if minimum < 1.5 :   # Tuning minimum 
         print("Gambar terdekat")
         nearestImage =  outputImage(folderpath, MatrixCoef, InputCoef)
         print(nearestImage)
@@ -225,7 +225,6 @@ def closestImage(path, InputCoef, MatrixCoef):
         print(nearestImage)
         print("Gambar tidak ditemukan")
         return None
-
 
 
 def displayEigenFace(eigenFace) :

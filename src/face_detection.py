@@ -62,6 +62,32 @@ def getBanyakFoto(pth):
         c += 1
     return c
 
+
+
+def getLinComOfEigVector(bestEigenVectorsOfCov, imageVectorInput) :
+    """
+    return the linear Combination of bestEigenVectorsOfCov from imageVectorInput
+    size : number of best eigenfaces x 1
+    """
+    x = bestEigenVectorsOfCov
+    y = np.transpose(imageVectorInput)
+    linCom = np.transpose([np.linalg.lstsq(x, y[0], rcond=None)[0]])
+    return linCom
+
+
+def getMinimumDistance(inputLinCom, CoefMatrix) :
+    """
+    return minimum distance from linear combination of input image 
+    and linear combination of each image in data set
+    """
+    minimum = minimum = np.linalg.norm(np.subtract(inputLinCom, np.transpose([CoefMatrix[:, 0]])))
+    for i in range(len(CoefMatrix[0])) :
+        distance = np.linalg.norm(np.subtract(inputLinCom, np.transpose([CoefMatrix[:, i]])))
+        if (distance < minimum) :
+            minimum = distance
+    return minimum
+
+
 def getNearestImage(dataset_folder,file_path, eigenvector, eigenface):
     path = f"test/input/{file_path}"#"pins_dataset" itu nama foldernya
     a = convertImage(path)

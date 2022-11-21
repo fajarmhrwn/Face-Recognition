@@ -268,6 +268,10 @@ class App(customtkinter.CTk):
     def take_imageInput(self):
         if App.Frame is not None:    
             img_camera = convertFrame(App.Frame)
+            self.img = Image.fromarray(img_camera)
+            self.imgtk = ImageTk.PhotoImage(self.img.resize((256, 256)))
+            self.label_info_2.configure(image=self.imgtk)
+            self.label_info_2.image = self.imgtk
             img_camera = img_camera.reshape(256*256, 1)
             matrixCoed,eigenface = trainingData("src/camera")
             try:
@@ -312,7 +316,8 @@ class App(customtkinter.CTk):
         #output image to label_info_2
         if App.image_camera is not None:
             self.img = Image.open(App.image_camera)
-            self.imgtk = ImageTk.PhotoImage(self.img.resize((640, 480)))
+            resized_img = self.img.resize((500, 500), Image.ANTIALIAS)
+            self.imgtk = ImageTk.PhotoImage(resized_img)
             start_time = time.time()
             self.label_info_1.configure(image=self.imgtk)
             self.label_info_1.image=self.imgtk

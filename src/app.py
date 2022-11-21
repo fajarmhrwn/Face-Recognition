@@ -163,31 +163,35 @@ class App(customtkinter.CTk):
 
     def openFolder(self):
         folder = filedialog.askdirectory()
+        App.Folder = folder
         print(folder)
         self.label_2.configure(text=folder[0:20] + "...")
-        #remove file inside data folder
-        for filename in os.listdir("src/data"):
-            os.remove(folder + "/" + filename)
+        for f in os.listdir("src\data"):
+            os.remove(os.path.join("src\data", f))
+        for f in os.listdir("src\grayImage"):
+            os.remove(os.path.join("src\grayImage", f))
         trainingData(folder)
+        for i in os.listdir(folder):
 
+            a = convertImage(folder +f"\{i}")
+            cv2.imwrite(os.path.join("src/grayImage/" , i), a)
 
     
     def openFile(self):
         self.label_time.configure(text="Executed Time : 0 s")
         file = filedialog.askopenfilename()
         image_path = file
-        Image = convertImage(image_path)
-        Image = Image.reshape(256*256, 1)
+        image_file = convertImage(image_path)
+        image_file = image_file.reshape(256*256, 1)
         eigenface = np.loadtxt("src\data\eigenface.txt",delimiter=";")
-        print(eigenface.shape)
-        coefmatrix = np.loadtxt("srcc\data\coefmatrix.txt",delimiter=";")
-        print(coefmatrix.shape)
+        coefmatrix = np.loadtxt("src\data\matriksCoef.txt",delimiter=";")
         try:
-            InputCoef = getCoef(eigenface, Image)
-            path = closestImage(path, InputCoef, coefmatrix)
+            InputCoef = getCoef(eigenface, image_file)
+            path = closestImage(App.Folder, InputCoef, coefmatrix)
+            print(path)
+            App.image_file = path
         except:
             print("Dataset tidak ada")
-        App.image_file = file
         self.label_4.configure(text=file[0:20] + "...")
         self.img = Image.open(file)
         self.imgtk = ImageTk.PhotoImage(self.img.resize((256, 256)))

@@ -184,13 +184,14 @@ def trainingData(path):
     MatrixCoef = getMatrixCoef(eigeface, normalizedMatrix)
     np.savetxt(f"src/data/matriksCoef.txt", MatrixCoef, delimiter=";")
     np.savetxt(f"src/data/eigenface.txt", eigeface, delimiter=";")
+    print("Training Selesai")
     return MatrixCoef, eigeface
 
 
 def closestImage(path, InputCoef, MatrixCoef):
     '''Mengluarkan Gambar yang paling mirip jika tidak ada keluarkan "Gambar tidak ditemukan" '''
     print("Mencari gambar terdekat")
-    folderpath = f"test/pins_dataset/{path}"
+    folderpath = path
     minimum = nearestDistance(InputCoef, MatrixCoef)
     print(minimum, "min")
     if minimum <  0.8 :   # Tuning minimum 

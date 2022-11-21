@@ -2,6 +2,7 @@
 import numpy as np
 import os
 import cv2
+from matplotlib import pyplot as plt
 
 def getNorm(m):
     #Mendapatkan norm dari matriks
@@ -67,7 +68,8 @@ def getLinComMatrix(bestEigenVector, normalizedDataSet) :
 #Linear kombinasi dari satu gambar
 def getLinComOfEigVector(bestEigenVectorsOfCov, imageVectorInput) :
     x = bestEigenVectorsOfCov
-    y = np.transpose(imageVectorInput)
+    # x = (256*256, 1)
+    y = np.transpose(imageVectorInput)# ini matriks 1 , 256*256
     linCom = np.transpose([np.linalg.lstsq(x, y[0], rcond=None)[0]])
     return linCom
 
@@ -97,23 +99,30 @@ def cropimage(image):
         os.remove(image)
         return image
 
-def list_eigenface(mean_subtracted):
+def list_eigenface(mean_subtracted,all_image):
     # Mencari eigenface untuk semua dataset
     print("Mencari eigenface")
-    redCov = np.matmul(np.transpose(mean_subtracted),mean_subtracted)
+    print(mean_subtracted.shape)#(256*256, 100)
+    redCov = np.matmul(np.transpose(mean_subtracted),mean_subtracted) # A'A  = (122, 122)
     #nilai bes eigenvectornya disimpan di file
     eigenvalue, eigenvector = eigen_qr_practical(redCov)
+    print(eigenvector.shape)
     # multiply with eigen vector
     grthnOne = 0
     for i in eigenvalue.diagonal():
         if i > 1:
             grthnOne += 1
-    redEigenVector = eigenvector[:, :grthnOne]
+    redEigenVector = eigenvector[:, :grthnOne] #(122,121)
+    print(redEigenVector[:,0].shape)
+    print(redEigenVector[:,0])
+    print(np.transpose([redEigenVector[:,0]]).shape)
+    print(np.transpose(redEigenVector[:,0]))
     bestEigenVectorsOfCov = np.empty((256*256, 0), float)
     for i in range(len(redEigenVector[0])) :
-        temp = np.matmul(mean_subtracted, np.transpose([redEigenVector[:, i]]))
+        temp = np.matmul(all_image, np.transpose([redEigenVector[:, i]]))
         bestEigenVectorsOfCov = np.column_stack((bestEigenVectorsOfCov, temp))
     
+    print(bestEigenVectorsOfCov.shape)
     return bestEigenVectorsOfCov
     #ini disave
 
@@ -155,8 +164,9 @@ def gettrainingdataa(path):
                 convertedImage = convertImage(tempPath)
                 # print(convertedImage.shape)
                 allImage= np.column_stack((allImage, convertedImage.reshape(256*256, 1)))
+    print(allImage.shape)
     mean_subtracted = allImage - allImage.mean(axis=1, keepdims=True)
-    eigeface = list_eigenface(mean_subtracted)
+    eigeface = list_eigenface(mean_subtracted,allImage)
     CoefMatrix = getLinComMatrix(eigeface, mean_subtracted)
     #save coefmatrix dan eigenface
     # np.savetxt(f"data/coefmatrix.txt", CoefMatrix, delimiter=",")
@@ -180,16 +190,27 @@ def generateclosestimage(path, lincom_imageinput, lincomdataset):
         print("Gambar tidak ditemukan")
         return None
 
+
+
+def displayEigenFace(eigenFace) :
+    # Menampilkan eigenface
+    print("Menampilkan eigenface")
+    fig = plt.figure()
+    for i in range(len(eigenFace[0])) :
+        fig.add_subplot(10, 16, i+1)
+        plt.imshow(eigenFace[:, i].reshape(256, 256), cmap='gray')
+    plt.show()
 # cropimage("test/input/test_fajar.png")
 print("Mulai")
 path = input("Masukkan nama folder dataset: ")
 coefmatrix, eigenface = gettrainingdataa(path)
-image_path = input("Masukkan nama file gambar: ")
-Image = convertImage("test/input/"+image_path)
-Image = Image.reshape(256*256, 1)
-lincom_imageinput = getLinComOfEigVector(eigenface, Image)
-path = generateclosestimage(path, lincom_imageinput, coefmatrix)
-#show image
-if path != None:
-    img = cv2.imread(path)
-    cv2.imwrite("test/input/1"+image_path, img)
+displayEigenFace(eigenface)
+# image_path = input("Masukkan nama file gambar: ")
+# Image = convertImage("test/input/"+image_path)
+# Image = Image.reshape(256*256, 1)
+# lincom_imageinput = getLinComOfEigVector(eigenface, Image)
+# path = generateclosestimage(path, lincom_imageinput, coefmatrix)
+# #show image
+# if path != None:
+#     img = cv2.imread(path)
+#     cv2.imwrite("test/input/1"+image_path, img)

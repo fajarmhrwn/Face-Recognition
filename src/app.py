@@ -7,9 +7,15 @@ import numpy as np
 import cv2
 from eigenface import *
 import customtkinter
+import random
+import string
+import threading
 
 customtkinter.set_appearance_mode("System")  # Modes: "System" (standard), "Dark", "Light"
 customtkinter.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"
+
+def createfilename():
+    return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(6))
 
 def wait():
     for i in range(0,1000):
@@ -147,18 +153,22 @@ class App(customtkinter.CTk):
         # from row 1 to 8, column 0 to 1
         self.label_info_2.grid(row=2, column=0, rowspan=6, columnspan=2, pady=10, padx=10, sticky="nsew")
         self.button_camera = customtkinter.CTkButton(master=self.frame_right,
-                                                text="take picture",
-                                                command=self.take_image)
+                                                text="Training Image",
+                                                command=self.trainingImage)
         #beside near label_time
         self.button_camera.grid(row=8, column=0, pady=10, padx=20, sticky="w")                                        
 
     def camera_event(self):
         if self.switch_camera.get() == 'on':
             self.switch_camera.configure(text="Camera ON")
+            self.button_1.configure(state=tkinter.DISABLED)
+            self.button_3.configure(state=tkinter.DISABLED)
             self.opencamera()
             #open camera with MyvideoCapture
         else:
             self.switch_camera.configure(text="Camera OFF")
+            self.button_1.configure(state=tkinter.NORMAL)
+            self.button_3.configure(state=tkinter.NORMAL)
             self.stopcamera()
 
     def openFolder(self):
@@ -168,15 +178,8 @@ class App(customtkinter.CTk):
         self.label_2.configure(text=folder[0:20] + "...")
         for f in os.listdir("src\data"):
             os.remove(os.path.join("src\data", f))
-            
-        # for f in os.listdir("src\grayImage"):
-        #     os.remove(os.path.join("src\grayImage", f))
-        #     print("3")
         trainingData(folder)
-        # for i in os.listdir(folder):
 
-        #     a = convertImage(folder +f"\{i}")
-        #     cv2.imwrite(os.path.join("src/grayImage" , i), a)
 
     
     def openFile(self):
@@ -220,11 +223,17 @@ class App(customtkinter.CTk):
         App.cam.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
         App.cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
         App.cam.set(cv2.CAP_PROP_FPS, 30)
-        #cv2.namedWindow("Experience_in_AI camera")
+        self.everynseconds()
         while True:
             ret, frame = App.cam.read()
             App.Frame = frame
             #Update the image to tkinter...
+            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            face_cascade = cv2.CascadeClassifier('src/src_feature/face.xml')
+            faces = face_cascade.detectMultiScale(gray, 1.1, 4)
+            if len(faces) > 0:
+                for (x, y, w, h) in faces:
+                    cv2.rectangle(frame, (x, y), (x+w, y+h), (255, 0, 0), 2)
             frame_tkinter=cv2.cvtColor(frame,cv2.COLOR_BGR2RGB)
             img_update = ImageTk.PhotoImage(Image.fromarray(frame_tkinter))
             #configure padding lael_info_2 to 0
@@ -232,11 +241,14 @@ class App(customtkinter.CTk):
             self.label_info_2.image=img_update
             self.label_info_2.update()
 
+            #every 10 seconds take a picture
+
             if not ret:
                 print("failed to grab frame")
                 break
         App.image_camera = None
         App.image_file = None
+
     def stopcamera(self):
         App.cam.release()
         cv2.destroyAllWindows()
@@ -253,16 +265,48 @@ class App(customtkinter.CTk):
             print("Enter pressed")
             self.take_image()
 
-    def take_image(self):
+    def take_imageInput(self):
         if App.Frame is not None:    
-            img_name = "test\camera\opencv_frame_{}.png".format(App.img_counter)
-            App.image_camera = img_name
-            cv2.imwrite(img_name, App.Frame)
-            print("{} written!".format(img_name))
-            App.img_counter += 1
-        self.outputimage()
-    
+            img_camera = convertFrame(App.Frame)
+            img_camera = img_camera.reshape(256*256, 1)
+            matrixCoed,eigenface = trainingData("src/camera")
+            try:
+                InputCoef = getCoef(eigenface, img_camera)
+                path = closestImage("src/camera", InputCoef, matrixCoed)
+                print(path)
+                App.image_camera = path
+            except:
+                App.image_camera = None
+                print("Dataset tidak ada") 
+            frame = App.Frame
+            frame_tkinter=cv2.cvtColor(frame,cv2.COLOR_BGR2RGB)
+            img_update = ImageTk.PhotoImage(Image.fromarray(frame_tkinter))
+            self.label_info_2.configure(image=img_update, padx=0, pady=0)
+            self.label_info_2.image=img_update
+            self.label_info_2.update()       
+            self.outputimage()
 
+    def take_imageTraining(self):
+        img_name = "src/camera/" + str(int(time.time())) + ".jpg"
+        cv2.imwrite(img_name, App.Frame)
+        cropimage(img_name)
+        print("{} written!".format(img_name))
+        frame = App.Frame
+        frame_tkinter=cv2.cvtColor(frame,cv2.COLOR_BGR2RGB)
+        img_update = ImageTk.PhotoImage(Image.fromarray(frame_tkinter))
+        self.label_info_2.configure(image=img_update, padx=0, pady=0)
+        self.label_info_2.image=img_update
+        self.label_info_2.update()
+
+    def trainingImage(self):
+            start = time.time()
+            while time.time() - start < 10:
+                if (time.time() - start) % 0.5 == 0:
+                    print("Take Image")
+                    ret , frame = App.cam.read()
+                    App.Frame = frame
+                    self.take_imageTraining()
+            
     def outputimage(self):
         #input image from camera or file
         #output image to label_info_2
@@ -290,8 +334,13 @@ class App(customtkinter.CTk):
             self.label_info_1.update()
             print("No image selected")
         
-
+    def everynseconds(self):
+        print("every 10 seconds")
+        self.after(10000, self.everynseconds)
+        self.take_imageInput()
+    
 if __name__ == "__main__":
+    start = time.time()
     app = App()
     app.mainloop()
 

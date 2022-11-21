@@ -76,9 +76,18 @@ def convertImage(imagename):
     return converted
 
 
+def convertFrame(frame):
+    '''Mengubah Frame image menjadi matriks n*n x 1'''
+    frame = cv2.resize(frame, (256, 256), interpolation = cv2.INTER_AREA)
+    greyscaleimg = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    converted = greyscaleimg.flatten()
+    return converted
+
+
 def getMatrixCoef(bestEigenVector, normalizedDataSet) :
     '''Menghasilkan List kombinasi linier dari normalized matriks yang ada pada dataset
         ,List ini berbentuk (<banyakeigenface>,<banyakgambar>)'''
+    print("")
     CoefOfLinComMatrix = np.empty((len(bestEigenVector[0]),0), float)
     for i in range(len(normalizedDataSet[0])) :
         LinComOfNormalized = getCoef(bestEigenVector, np.transpose([normalizedDataSet[:,i]]))
@@ -106,7 +115,7 @@ def cropimage(image):
     '''Mengcrop gambar di wajah pengguna'''
     frame = cv2.imread(image)
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    face_cascade = cv2.CascadeClassifier('src\src_feature\face.xml')
+    face_cascade = cv2.CascadeClassifier('src/src_feature/face.xml')
     faces = face_cascade.detectMultiScale(gray, 1.1, 4)
     if len(faces) > 0:
         for (x, y, w, h) in faces:
@@ -117,6 +126,17 @@ def cropimage(image):
         print("Tidak ada")
         os.remove(image)
         return image
+        
+def cropframe(frame,path):
+    '''Mengcrop gambar di wajah pengguna'''
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    face_cascade = cv2.CascadeClassifier('src\src_feature\face.xml')
+    faces = face_cascade.detectMultiScale(gray, 1.1, 4)
+    if len(faces) > 0:
+        for (x, y, w, h) in faces:
+            crop_img = frame[y:y+h+10, x:x+w+10]
+            cv2.imwrite(path, crop_img)
+
 
 def list_eigenface(normalizedMatrix,all_image):
     '''Menghasilkan Matriks EigenFace dengan ukuran (256*256,<banyak eigenvector terbaik>)'''
@@ -138,7 +158,7 @@ def list_eigenface(normalizedMatrix,all_image):
 def cropAllImage(path):
     # Mengcrop semua image
     print("Mengcrop semua image")
-    folderpath = f"test/pins_dataset/{path}"
+    folderpath = path
     print(folderpath)
     for (dirPath, dirNames, file) in os.walk(folderpath):
         for fileNames in file :

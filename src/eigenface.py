@@ -206,7 +206,6 @@ def trainingData(path):
                     os.remove(tempPath)
     
     normalizedMatrix = A - A.mean(axis=1, keepdims=True)
-    print(np.shape(A.mean(axis=1, keepdims=True)))
     np.savetxt(f"src/data/mean.txt", A.mean(axis=1, keepdims=True) , delimiter=";")
     eigeface = list_eigenface(normalizedMatrix,A)
     MatrixCoef = getMatrixCoef(eigeface, normalizedMatrix)
@@ -232,7 +231,7 @@ def closestImage(path, InputCoef, MatrixCoef):
     folderpath = path
     minimum = nearestDistance(InputCoef, MatrixCoef)
     print(minimum, "min") 
-    if minimum < 1.5 :   # Tuning minimum 
+    if minimum < 0.85 :   # Tuning minimum 
         print("Gambar terdekat")
         nearestImage =  outputImage(folderpath, MatrixCoef, InputCoef)
         print(nearestImage)

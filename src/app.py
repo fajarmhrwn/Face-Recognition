@@ -183,6 +183,7 @@ class App(customtkinter.CTk):
         App.Folder = folder
         print(folder)
         if folder != "":
+            startTime = time.time()
             self.label_2.configure(text=folder[0:20] + "...")
             for f in os.listdir("src/data"):
                 os.remove(os.path.join("src/data", f))

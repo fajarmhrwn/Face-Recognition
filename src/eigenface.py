@@ -14,7 +14,7 @@ def getNorm(m):
 def checkConverge(arr,arr_prev):
     ''' Mengecek nilai elemen matriks apakah konvergen menuju suatu nilai '''
     
-    if (getNorm(arr_prev-arr)> 50000): # Parameter dapat diubah sesuai tingkat akurasi
+    if (getNorm(arr_prev-arr)> 5000): # Parameter dapat diubah sesuai tingkat akurasi
             return False
     return True
 
@@ -25,6 +25,7 @@ def getEigenValueVector(A):
     QQ = np.eye(n)
     i = 0
     while(True):
+        i += 1
         copyMatrix_copy = np.copy(copyMatrix)
         s = copyMatrix.item(n-1, n-1)
         smult = s * np.eye(n)
@@ -33,7 +34,6 @@ def getEigenValueVector(A):
         # smult dikembalikan nilainya
         copyMatrix = np.add(R @ Q, smult)
         QQ = QQ @ Q
-        i += 1
         if(checkConverge(copyMatrix,copyMatrix_copy)):
             # Cek parameter konvergen 
             break
@@ -195,7 +195,7 @@ def closestImage(path, InputCoef, MatrixCoef):
     folderpath = path
     minimum = nearestDistance(InputCoef, MatrixCoef)
     print(minimum, "min") 
-    if minimum < 0.8 :   # Tuning minimum 
+    if minimum < 10 :   # Tuning minimum 
         print("Gambar terdekat")
         nearestImage =  outputImage(folderpath, MatrixCoef, InputCoef)
         print(nearestImage)

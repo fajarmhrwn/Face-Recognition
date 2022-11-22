@@ -34,7 +34,7 @@ Face recognition is a method of identifying or verifying the identity of an indi
 ## Screenshots
 - Tampilan Awal
 <p align="center">
-    <img src="https://ibb.co/6NC8B0R">
+    <img src="https://i.postimg.cc/8CN8zdtC/tampilanawal.jpg">
 </p>
 
 

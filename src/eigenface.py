@@ -215,7 +215,7 @@ def closestImage(path, InputCoef, MatrixCoef):
     folderpath = path
     minimum = nearestDistance(InputCoef, MatrixCoef)
     print(minimum, "min")
-    if minimum < 1.5 :   # Tuning minimum 
+    if minimum > 1.5 :   # Tuning minimum 
         print("Gambar terdekat")
         nearestImage =  outputImage(folderpath, MatrixCoef, InputCoef)
         print(nearestImage)

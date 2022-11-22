@@ -23,6 +23,7 @@ def wait():
 
 
 class App(customtkinter.CTk):
+    startTime = None
     image_camera = None
     Folder = None
     image_file = None
@@ -176,30 +177,31 @@ class App(customtkinter.CTk):
         App.Folder = folder
         print(folder)
         self.label_2.configure(text=folder[0:20] + "...")
-        for f in os.listdir("src\data"):
-            os.remove(os.path.join("src\data", f))
+        print("loading...")
+        for f in os.listdir("src/data"):
+            os.remove(os.path.join("src/data", f))
         trainingData(folder)
 
 
     
     def openFile(self):
         App.image_file = None
-
+        App.startTime = time.time()
         self.label_time.configure(text="Executed Time : 0 s")
         file = filedialog.askopenfilename()
         image_path = file
         image_file = convertImage(image_path)
         image_file = image_file.reshape(256*256, 1)
-        eigenface = np.loadtxt("src\data\eigenface.txt",delimiter=";")
-        coefmatrix = np.loadtxt("src\data\matriksCoef.txt",delimiter=";")
         try:
+            eigenface = np.loadtxt("src/data/eigenface.txt",delimiter=";")
+            coefmatrix = np.loadtxt("src/data/matriksCoef.txt",delimiter=";")
             InputCoef = getCoef(eigenface, image_file)
             path = closestImage(App.Folder, InputCoef, coefmatrix)
             print(path)
             App.image_file = path
         except:
             App.image_file = None
-            print("Dataset tidak ada")
+            print(" File , Dataset tidak ada")
         self.label_4.configure(text=file[0:20] + "...")
         self.img = Image.open(file)
         self.imgtk = ImageTk.PhotoImage(self.img.resize((256, 256)))
@@ -268,12 +270,16 @@ class App(customtkinter.CTk):
     def take_imageInput(self):
         if App.Frame is not None:    
             img_camera = convertFrame(App.Frame)
+            App.startTime = time.time()
             self.img = Image.fromarray(img_camera)
             self.imgtk = ImageTk.PhotoImage(self.img.resize((256, 256)))
             self.label_info_2.configure(image=self.imgtk)
             self.label_info_2.image = self.imgtk
             img_camera = img_camera.reshape(256*256, 1)
-            matrixCoed,eigenface = trainingData("src/camera")
+            try :
+                matrixCoed,eigenface = trainingData("src/camera")
+            except:
+                print("Dataset tidak ada")
             try:
                 InputCoef = getCoef(eigenface, img_camera)
                 path = closestImage("src/camera", InputCoef, matrixCoed)
@@ -318,11 +324,11 @@ class App(customtkinter.CTk):
             self.img = Image.open(App.image_camera)
             resized_img = self.img.resize((500, 500), Image.ANTIALIAS)
             self.imgtk = ImageTk.PhotoImage(resized_img)
-            start_time = time.time()
             self.label_info_1.configure(image=self.imgtk)
             self.label_info_1.image=self.imgtk
             self.label_info_1.update()
-            self.label_time.configure(text="Executed Time: {:.2f} s".format(time.time() - start_time))
+            self.label_time.configure(text="Executed Time: {:.2f} s".format(time.time() - App.startTime))
+            App.startTime = None
             print("output image from camera")
         elif App.image_file is not None:
             self.img = Image.open(App.image_file)
@@ -331,7 +337,8 @@ class App(customtkinter.CTk):
             self.label_info_1.configure(image=self.imgtk)
             self.label_info_1.image=self.imgtk
             self.label_info_1.update()
-            self.label_time.configure(text="Executed Time: {:.2f} s".format(time.time() - start_time))
+            self.label_time.configure(text="Executed Time: {:.2f} s".format(time.time() - App.startTime))
+            App.startTime = None
             print("output image from file")
         else:
             self.label_info_1.configure(image="")

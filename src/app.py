@@ -163,6 +163,7 @@ class App(customtkinter.CTk):
             self.label_info_1.configure(image="")
             self.label_info_1.image = None
             self.label_info_1.update()
+            App.image_file = None
             self.switch_camera.configure(text="Camera ON")
             self.button_1.configure(state=tkinter.DISABLED)
             self.button_3.configure(state=tkinter.DISABLED)
@@ -238,6 +239,10 @@ class App(customtkinter.CTk):
         App.cam.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
         App.cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
         App.cam.set(cv2.CAP_PROP_FPS, 30)
+        try:
+            trainingData("src/camera")
+        except:
+            print("gambar tidak ada")
         self.everynseconds()
         while True and App.cam is not None:
             ret, frame = App.cam.read()
@@ -297,7 +302,10 @@ class App(customtkinter.CTk):
                 InputCoef = getCoef(eigenface, img_camera)
                 path = closestImage("src/camera", InputCoef, matrixCoed)
                 print(path)
-                App.image_camera = path
+                if path is not None:
+                    App.image_camera = path
+                else:
+                    App.image_camera = None
             except:
                 App.image_camera = None
                 print("Dataset tidak ada") 

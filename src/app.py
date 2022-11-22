@@ -9,7 +9,6 @@ from eigenface import *
 import customtkinter
 import random
 import string
-import threading
 
 customtkinter.set_appearance_mode("System")  # Modes: "System" (standard), "Dark", "Light"
 customtkinter.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"
@@ -167,6 +166,8 @@ class App(customtkinter.CTk):
             self.switch_camera.configure(text="Camera ON")
             self.button_1.configure(state=tkinter.DISABLED)
             self.button_3.configure(state=tkinter.DISABLED)
+            for f in os.listdir("src/data"):
+                os.remove(os.path.join("src/data", f))
             self.opencamera()
             #open camera with MyvideoCapture
         else:
@@ -177,6 +178,8 @@ class App(customtkinter.CTk):
             self.button_1.configure(state=tkinter.NORMAL)
             self.button_3.configure(state=tkinter.NORMAL)
             self.stopcamera()
+            for f in os.listdir("src/data"):
+                os.remove(os.path.join("src/data", f))
             App.cam = None
 
     def openFolder(self):
@@ -193,18 +196,15 @@ class App(customtkinter.CTk):
     
     def openFile(self):
         App.image_file = None
-        App.startTime = time.time()
         self.label_time.configure(text="Executed Time : 0 s")
         file = filedialog.askopenfilename()
         image_path = file
+        App.startTime = time.time()
         image_file = convertImage(image_path)
         image_file = (image_file.reshape(256*256, 1))
-        mean = np.loadtxt("src\data\mean.txt", delimiter=";").reshape(256*256, 1)
+        mean = np.loadtxt("src/data/mean.txt", delimiter=";").reshape(256*256, 1)
         print(np.shape(mean))
-        image_files = image_file - mean
-        image_file = image_files
-        eigenface = np.loadtxt("src\data\eigenface.txt",delimiter=";")
-        coefmatrix = np.loadtxt("src\data\matriksCoef.txt",delimiter=";")
+        image_file = image_file - mean
         try:
             eigenface = np.loadtxt("src/data/eigenface.txt",delimiter=";")
             coefmatrix = np.loadtxt("src/data/matriksCoef.txt",delimiter=";")
@@ -285,12 +285,15 @@ class App(customtkinter.CTk):
                 img_camera = None
             App.startTime = time.time()
             try :
-                matrixCoed,eigenface = trainingData("src/camera")
+                matrixCoed = np.loadtxt("src/data/matriksCoef.txt",delimiter=";")
+                eigenface = np.loadtxt("src/data/eigenface.txt",delimiter=";")
+                mean = np.loadtxt("src/data/mean.txt", delimiter=";").reshape(256*256, 1)
                 #print jumlah gambar di dalam folder
                 print("jumlah gambar di dalam folder : ",len(os.listdir("src/camera")))
             except:
-                print("Dataset tidak ada")
+                print("training gagal Dataset tidak ada")
             try:
+                img_camera = img_camera - mean
                 InputCoef = getCoef(eigenface, img_camera)
                 path = closestImage("src/camera", InputCoef, matrixCoed)
                 print(path)
@@ -311,6 +314,9 @@ class App(customtkinter.CTk):
         cv2.imwrite(img_name, App.Frame)
         cropimage(img_name)
         print("{} written!".format(img_name))
+        for f in os.listdir("src/data"):
+            os.remove(os.path.join("src/data", f))
+        trainingData("src/camera")
         frame = App.Frame
         frame_tkinter=cv2.cvtColor(frame,cv2.COLOR_BGR2RGB)
         img_update = ImageTk.PhotoImage(Image.fromarray(frame_tkinter))
@@ -321,7 +327,7 @@ class App(customtkinter.CTk):
     def trainingImage(self):
             start = time.time()
             while time.time() - start < 10:
-                if (time.time() - start) % 0.5 == 0:
+                if (time.time() - start) % 0.25 == 0:
                     print("Take Image")
                     ret , frame = App.cam.read()
                     App.Frame = frame
@@ -357,8 +363,8 @@ class App(customtkinter.CTk):
         
     def everynseconds(self):
         if App.cam is not None:
-            print("every 10 seconds")
-            self.after(10000, self.everynseconds)
+            print("every 5 seconds")
+            self.after(5000, self.everynseconds)
             self.take_imageInput()
     
 if __name__ == "__main__":

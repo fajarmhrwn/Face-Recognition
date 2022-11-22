@@ -271,13 +271,13 @@ class App(customtkinter.CTk):
     def take_imageInput(self):
         if App.Frame is not None:    
             gambar = cropframe(App.Frame)
-            img_camera = convertFrame(gambar)
+            try:
+                img_camera = convertFrame(gambar)
+                img_camera = img_camera.reshape(256*256, 1)
+            except:
+                print("No Face Detected")
+                img_camera = None
             App.startTime = time.time()
-            self.img = Image.fromarray(img_camera)
-            self.imgtk = ImageTk.PhotoImage(self.img.resize((256, 256)))
-            self.label_info_2.configure(image=self.imgtk)
-            self.label_info_2.image = self.imgtk
-            img_camera = img_camera.reshape(256*256, 1)
             try :
                 matrixCoed,eigenface = trainingData("src/camera")
                 #print jumlah gambar di dalam folder

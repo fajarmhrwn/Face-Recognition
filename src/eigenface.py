@@ -14,7 +14,7 @@ def getNorm(m):
 def checkConverge(arr,arr_prev):
     ''' Mengecek nilai elemen matriks apakah konvergen menuju suatu nilai '''
     
-    if (getNorm(arr_prev-arr)> 5000): # Parameter dapat diubah sesuai tingkat akurasi
+    if (getNorm(arr_prev-arr)> 50000): # Parameter dapat diubah sesuai tingkat akurasi
             return False
     return True
 
@@ -181,12 +181,24 @@ def trainingData(path):
                 A= np.column_stack((A, convertedImage.reshape(256*256, 1)))
     
     normalizedMatrix = A - A.mean(axis=1, keepdims=True)
+    print(np.shape(A.mean(axis=1, keepdims=True)))
+    np.savetxt(f"src/data/mean.txt", A.mean(axis=1, keepdims=True) , delimiter=";")
     eigeface = list_eigenface(normalizedMatrix,A)
     MatrixCoef = getMatrixCoef(eigeface, normalizedMatrix)
     np.savetxt(f"src/data/matriksCoef.txt", MatrixCoef, delimiter=";")
     np.savetxt(f"src/data/eigenface.txt", eigeface, delimiter=";")
     print("Training Selesai")
     return MatrixCoef, eigeface
+
+def getMean(path):
+    folderpath = path
+    A = np.empty((256*256,0), float) #Matriks Gambar (256*256,<Banyak Gambar>)
+    for (dirPath, dirNames, file) in os.walk(folderpath):
+        for fileNames in file :
+                tempPath = os.path.join(dirPath, fileNames)
+                convertedImage = convertImage(tempPath)
+                A= np.column_stack((A, convertedImage.reshape(256*256, 1)))
+    return A.mean(axis=1, keepdims=True)
 
 
 def closestImage(path, InputCoef, MatrixCoef):

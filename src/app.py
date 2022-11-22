@@ -186,7 +186,11 @@ class App(customtkinter.CTk):
         file = filedialog.askopenfilename()
         image_path = file
         image_file = convertImage(image_path)
-        image_file = image_file.reshape(256*256, 1)
+        image_file = (image_file.reshape(256*256, 1))
+        mean = np.loadtxt("src\data\mean.txt", delimiter=";").reshape(256*256, 1)
+        print(np.shape(mean))
+        image_files = image_file - mean
+        image_file = image_files
         eigenface = np.loadtxt("src\data\eigenface.txt",delimiter=";")
         coefmatrix = np.loadtxt("src\data\matriksCoef.txt",delimiter=";")
         try:

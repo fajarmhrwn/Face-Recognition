@@ -171,6 +171,7 @@ class App(customtkinter.CTk):
             self.button_1.configure(state=tkinter.NORMAL)
             self.button_3.configure(state=tkinter.NORMAL)
             self.stopcamera()
+            App.cam = None
 
     def openFolder(self):
         folder = filedialog.askdirectory()
@@ -226,7 +227,7 @@ class App(customtkinter.CTk):
         App.cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
         App.cam.set(cv2.CAP_PROP_FPS, 30)
         self.everynseconds()
-        while True:
+        while True and App.cam is not None:
             ret, frame = App.cam.read()
             App.Frame = frame
             #Update the image to tkinter...
@@ -347,9 +348,10 @@ class App(customtkinter.CTk):
             print("No image selected")
         
     def everynseconds(self):
-        print("every 10 seconds")
-        self.after(10000, self.everynseconds)
-        self.take_imageInput()
+        if App.cam is not None:
+            print("every 10 seconds")
+            self.after(10000, self.everynseconds)
+            self.take_imageInput()
     
 if __name__ == "__main__":
     start = time.time()

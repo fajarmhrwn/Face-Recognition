@@ -174,14 +174,14 @@ def cropAllImage(path):
 def outputImage (dirPath, MatrixCoef, InputCoef) :
     '''Mengeluarkan gambar yang paling mirip dengan gambar input di dataset'''
     minimum = getNorm(np.subtract(InputCoef, np.transpose([MatrixCoef[:, 0]])))
+    index = 0
     imageOrder = 1
     for i in range(len(MatrixCoef[0])) :
+        index += 1
         distance = getNorm(np.subtract(InputCoef, np.transpose([MatrixCoef[:, i]])))
         if (distance < minimum) :
             minimum = distance
-            imageOrder = i + 1
-
-
+            imageOrder = index
     count = 0
     for (dirPath, dirNames, file) in os.walk(dirPath):
         for fileNames in file :

@@ -75,9 +75,18 @@ def convertImage(imagename):
     return converted
 
 
+def convertFrame(frame):
+    '''Mengubah Frame image menjadi matriks n*n x 1'''
+    frame = cv2.resize(frame, (256, 256), interpolation = cv2.INTER_AREA)
+    greyscaleimg = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    converted = greyscaleimg.flatten()
+    return converted
+
+
 def getMatrixCoef(bestEigenVector, normalizedDataSet) :
     '''Menghasilkan List kombinasi linier dari normalized matriks yang ada pada dataset
         ,List ini berbentuk (<banyakeigenface>,<banyakgambar>)'''
+    print("")
     CoefOfLinComMatrix = np.empty((len(bestEigenVector[0]),0), float)
     for i in range(len(normalizedDataSet[0])) :
         LinComOfNormalized = getCoef(bestEigenVector, np.transpose([normalizedDataSet[:,i]]))
@@ -103,9 +112,10 @@ def nearestDistance(InputCoef, MatrixCoef) :
 
 def cropimage(image):
     '''Mengcrop gambar di wajah pengguna'''
+    print("Mengcrop image")
     frame = cv2.imread(image)
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    face_cascade = cv2.CascadeClassifier('src\src_feature\face.xml')
+    face_cascade = cv2.CascadeClassifier('src/src_feature/face.xml')
     faces = face_cascade.detectMultiScale(gray, 1.1, 4)
     if len(faces) > 0:
         for (x, y, w, h) in faces:
@@ -116,6 +126,17 @@ def cropimage(image):
         print("Tidak ada")
         os.remove(image)
         return image
+        
+def cropframe(frame):
+    '''Mengcrop gambar di wajah pengguna'''
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    face_cascade = cv2.CascadeClassifier('src/src_feature/face.xml')
+    faces = face_cascade.detectMultiScale(gray, 1.1, 4)
+    if len(faces) > 0:
+        for (x, y, w, h) in faces:
+            crop_img = frame[y:y+h+10, x:x+w+10]
+            return crop_img
+
 
 def list_eigenface(normalizedMatrix,all_image):
     '''Menghasilkan Matriks EigenFace dengan ukuran (256*256,<banyak eigenvector terbaik>)'''
@@ -141,7 +162,7 @@ def list_eigenface(normalizedMatrix,all_image):
 def cropAllImage(path):
     # Mengcrop semua image
     print("Mengcrop semua image")
-    folderpath = f"test/pins_dataset/{path}"
+    folderpath = path
     print(folderpath)
     for (dirPath, dirNames, file) in os.walk(folderpath):
         for fileNames in file :
@@ -152,16 +173,16 @@ def cropAllImage(path):
 
 
 def outputImage (dirPath, MatrixCoef, InputCoef) :
-    "Mengeluarkan gambar yang paling mirip dengan gambar input di dataset"
+    '''Mengeluarkan gambar yang paling mirip dengan gambar input di dataset'''
     minimum = getNorm(np.subtract(InputCoef, np.transpose([MatrixCoef[:, 0]])))
+    index = 0
     imageOrder = 1
     for i in range(len(MatrixCoef[0])) :
+        index += 1
         distance = getNorm(np.subtract(InputCoef, np.transpose([MatrixCoef[:, i]])))
         if (distance < minimum) :
             minimum = distance
-            imageOrder = i + 1
-
-
+            imageOrder = index
     count = 0
     for (dirPath, dirNames, file) in os.walk(dirPath):
         for fileNames in file :
@@ -217,7 +238,6 @@ def closestImage(path, InputCoef, MatrixCoef):
         print(nearestImage)
         print("Gambar tidak ditemukan")
         return None
-
 
 
 def displayEigenFace(eigenFace) :

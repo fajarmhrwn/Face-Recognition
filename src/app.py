@@ -17,11 +17,6 @@ customtkinter.set_default_color_theme("blue")  # Themes: "blue" (standard), "gre
 def createfilename():
     return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(6))
 
-def wait():
-    for i in range(0,1000):
-        print(i)
-
-
 class App(customtkinter.CTk):
     startTime = None
     image_camera = None

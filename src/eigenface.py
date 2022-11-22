@@ -198,8 +198,12 @@ def trainingData(path):
     for (dirPath, dirNames, file) in os.walk(folderpath):
         for fileNames in file :
                 tempPath = os.path.join(dirPath, fileNames)
-                convertedImage = convertImage(tempPath)
-                A= np.column_stack((A, convertedImage.reshape(256*256, 1)))
+                if (tempPath.endswith(".jpg") or tempPath.endswith(".png") or tempPath.endswith(".jpeg")):
+                    convertedImage = convertImage(tempPath)
+                    A= np.column_stack((A, convertedImage.reshape(256*256, 1)))
+                else:
+                    print(tempPath)
+                    os.remove(tempPath)
     
     normalizedMatrix = A - A.mean(axis=1, keepdims=True)
     np.savetxt(f"src/data/mean.txt", A.mean(axis=1, keepdims=True) , delimiter=";")

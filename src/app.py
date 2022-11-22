@@ -16,11 +16,6 @@ customtkinter.set_default_color_theme("blue")  # Themes: "blue" (standard), "gre
 def createfilename():
     return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(6))
 
-def wait():
-    for i in range(0,1000):
-        print(i)
-
-
 class App(customtkinter.CTk):
     startTime = None
     image_camera = None
@@ -193,8 +188,11 @@ class App(customtkinter.CTk):
             for f in os.listdir("src/data"):
                 os.remove(os.path.join("src/data", f))
             print("loading...")
+            App.startTime = time.time()
             trainingData(folder)
-            self.label_time.configure(text="Executed Time: {:.2f} s".format(time.time() - startTime))
+            self.label_time.configure(text="Executed Time: {:.2f} s".format(time.time() - App.startTime))
+            App.startTime = None
+
 
 
     
@@ -286,7 +284,8 @@ class App(customtkinter.CTk):
         self.label_time.configure(text="Executed Time : 0 s")
 
     def take_imageInput(self):
-        if App.Frame is not None:    
+        if App.Frame is not None:
+            App.startTime = time.time()    
             gambar = cropframe(App.Frame)
             try:
                 img_camera = convertFrame(gambar)
@@ -330,7 +329,10 @@ class App(customtkinter.CTk):
         print("{} written!".format(img_name))
         for f in os.listdir("src/data"):
             os.remove(os.path.join("src/data", f))
+        App.startTime = time.time()
         trainingData("src/camera")
+        self.label_time.configure(text="Executed Time : " + str(round(time.time() - App.startTime, 2)) + " s")
+        App.startTime= None
         frame = App.Frame
         frame_tkinter=cv2.cvtColor(frame,cv2.COLOR_BGR2RGB)
         img_update = ImageTk.PhotoImage(Image.fromarray(frame_tkinter))

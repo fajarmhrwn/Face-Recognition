@@ -1,6 +1,5 @@
 # Algeo02-21080
-> Outline a brief description of your project.
-> Live demo [_here_](https://www.example.com). <!-- If you have the project hosted somewhere, include the link here. -->
+> Face Recognition using EigenFace algorithm.
 ## Table of Contents
 * [General Info](#general-information)
 * [Technologies Used](#technologies-used)
@@ -8,73 +7,51 @@
 * [Screenshots](#screenshots)
 * [Setup](#setup)
 * [Usage](#usage)
-* [Project Status](#project-status)
-* [Room for Improvement](#room-for-improvement)
-* [Acknowledgements](#acknowledgements)
-* [Contact](#contact)
+
 <!-- * [License](#license) -->
 
 
 ## General Information
-- Provide general information about your project here.
-- What problem does it (intend to) solve?
-- What is the purpose of your project?
-- Why did you undertake it?
+Face recognition is a method of identifying or verifying the identity of an individual using person's face. Face recognition can be made by using eigenface algorithm. Eigenface is formed by finding its eigenvalue and eigenvector. To find eigenvalue and eigenvector, we use the QR decomposition using the gram-schmidt method (find from the covarian matrix).
 <!-- You don't have to answer all the questions - just the ones relevant to your project. -->
 
 
 ## Technologies Used
-- Tech 1 - version 1.0
-- Tech 2 - version 2.0
-- Tech 3 - version 3.0
+- Opencv        - version 4.6.0
+- Pillow        - version 9.3.0
+- Tkinter       - version 8.6
+- Numpy         - version 1.23.4
+- Matplotlib    - version 3.6.2
+- CustomTkinter - version 4.6.3
 
 
 ## Features
-List the ready features here:
-- Awesome feature 1
-- Awesome feature 2
-- Awesome feature 3
+- Face recognition with camera
+- Input image preview
+- Output image preview
 
 
 ## Screenshots
-![Example screenshot](./img/screenshot.png)
+- Tampilan Awal
+<p align="center">
+    <img src="https://i.postimg.cc/8CN8zdtC/tampilanawal.jpg">
+</p>
+
+
 <!-- If you have screenshots you'd like to share, include them here. -->
 
 
 ## Setup
-What are the project requirements/dependencies? Where are they listed? A requirements.txt or a Pipfile.lock file perhaps? Where is it located?
-
-Proceed to describe how to install / setup one's local environment / get started with the project.
+1. Install all dependencies using pip install -r requirements.txt
 
 
 ## Usage
-How does one go about using it?
-Provide various use cases and code examples here.
-
-`write-your-code-here`
-
-
-## Project Status
-Project is: _in progress_ / _complete_ / _no longer being worked on_. If you are no longer working on it, provide reasons why.
-
-
-## Room for Improvement
-Include areas you believe need improvement / could be improved. Also add TODOs for future development.
-
-Room for improvement:
-- Improvement to be done 1
-- Improvement to be done 2
-
-To do:
-- Feature to be added 1
-- Feature to be added 2
-
-
-## Acknowledgements
-Give credit here.
-- This project was inspired by...
-- This project was based on [this tutorial](https://www.example.com).
-- Many thanks to...
+1. Run App.py.
+2. Choose dataset folder from your browser.
+3. Upload the image you want to check for similarities to the dataset folder.
+4. You can also use camera by turning on the camera at the bottom left.
+5. Wait for a while to get the result.
+4. Close application to quit your program.
 
 
 

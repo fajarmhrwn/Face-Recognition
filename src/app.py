@@ -188,11 +188,13 @@ class App(customtkinter.CTk):
         App.Folder = folder
         print(folder)
         if folder != "":
+            startTime = time.time()
             self.label_2.configure(text=folder[0:20] + "...")
             for f in os.listdir("src/data"):
                 os.remove(os.path.join("src/data", f))
             print("loading...")
             trainingData(folder)
+            self.label_time.configure(text="Executed Time: {:.2f} s".format(time.time() - startTime))
 
 
     

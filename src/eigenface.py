@@ -112,6 +112,7 @@ def nearestDistance(InputCoef, MatrixCoef) :
 
 def cropimage(image):
     '''Mengcrop gambar di wajah pengguna'''
+    print("Mengcrop image")
     frame = cv2.imread(image)
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     face_cascade = cv2.CascadeClassifier('src/src_feature/face.xml')
@@ -126,15 +127,15 @@ def cropimage(image):
         os.remove(image)
         return image
         
-def cropframe(frame,path):
+def cropframe(frame):
     '''Mengcrop gambar di wajah pengguna'''
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    face_cascade = cv2.CascadeClassifier('src\src_feature\face.xml')
+    face_cascade = cv2.CascadeClassifier('src/src_feature/face.xml')
     faces = face_cascade.detectMultiScale(gray, 1.1, 4)
     if len(faces) > 0:
         for (x, y, w, h) in faces:
             crop_img = frame[y:y+h+10, x:x+w+10]
-            cv2.imwrite(path, crop_img)
+            return crop_img
 
 
 def list_eigenface(normalizedMatrix,all_image):
@@ -215,7 +216,7 @@ def closestImage(path, InputCoef, MatrixCoef):
     folderpath = path
     minimum = nearestDistance(InputCoef, MatrixCoef)
     print(minimum, "min")
-    if minimum > 1.5 :   # Tuning minimum 
+    if minimum < 1.5 :   # Tuning minimum 
         print("Gambar terdekat")
         nearestImage =  outputImage(folderpath, MatrixCoef, InputCoef)
         print(nearestImage)

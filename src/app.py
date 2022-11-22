@@ -161,12 +161,18 @@ class App(customtkinter.CTk):
 
     def camera_event(self):
         if self.switch_camera.get() == 'on':
+            self.label_info_1.configure(image="")
+            self.label_info_1.image = None
+            self.label_info_1.update()
             self.switch_camera.configure(text="Camera ON")
             self.button_1.configure(state=tkinter.DISABLED)
             self.button_3.configure(state=tkinter.DISABLED)
             self.opencamera()
             #open camera with MyvideoCapture
         else:
+            self.label_info_1.configure(image="")
+            self.label_info_1.image = None
+            self.label_info_1.update()
             self.switch_camera.configure(text="Camera OFF")
             self.button_1.configure(state=tkinter.NORMAL)
             self.button_3.configure(state=tkinter.NORMAL)
@@ -262,15 +268,10 @@ class App(customtkinter.CTk):
         App.image_file = None
         self.label_time.configure(text="Executed Time : 0 s")
 
-    
-    def keypressed(self, event):
-        if event.char == '<Return>':
-            print("Enter pressed")
-            self.take_image()
-
     def take_imageInput(self):
         if App.Frame is not None:    
-            img_camera = convertFrame(App.Frame)
+            gambar = cropframe(App.Frame)
+            img_camera = convertFrame(gambar)
             App.startTime = time.time()
             self.img = Image.fromarray(img_camera)
             self.imgtk = ImageTk.PhotoImage(self.img.resize((256, 256)))
@@ -279,6 +280,8 @@ class App(customtkinter.CTk):
             img_camera = img_camera.reshape(256*256, 1)
             try :
                 matrixCoed,eigenface = trainingData("src/camera")
+                #print jumlah gambar di dalam folder
+                print("jumlah gambar di dalam folder : ",len(os.listdir("src/camera")))
             except:
                 print("Dataset tidak ada")
             try:
@@ -334,7 +337,6 @@ class App(customtkinter.CTk):
         elif App.image_file is not None:
             self.img = Image.open(App.image_file)
             self.imgtk = ImageTk.PhotoImage(self.img.resize((256, 256)))
-            start_time = time.time()
             self.label_info_1.configure(image=self.imgtk)
             self.label_info_1.image=self.imgtk
             self.label_info_1.update()

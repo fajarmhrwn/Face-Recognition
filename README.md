@@ -36,7 +36,26 @@ Face recognition is a method of identifying or verifying the identity of an indi
 <p align="center">
     <img src="https://i.postimg.cc/8CN8zdtC/tampilanawal.jpg">
 </p>
-
+- Tampilan Input Gambar Tidak Ada dalam Dataset 
+Mengeluarkan wajah paling mirip
+<p align="center">
+    <img src="https://i.postimg.cc/Y9jttfCW/cb1.jpg">
+</p>
+- Tampilan Input Gambar Ada dalam Dataset 
+<p align="center">
+    <img src="https://i.postimg.cc/JnytpWJv/cb2.jpg">
+</p>
+- Tampilan Input Gambar Tidak Ada dalam Dataset 
+<p align="center">
+    <img src="https://i.postimg.cc/P5txBDYm/gadadataset.jpg">
+</p>
+- Tampilan Kamera
+<p align="center">
+    <img src="https://i.postimg.cc/tJZRNt0j/fajarcam.jpg">
+</p>
+<p align="center">
+    <img src="https://i.postimg.cc/XNQ9HnT1/alicam.jpg">
+</p>
 
 <!-- If you have screenshots you'd like to share, include them here. -->
 

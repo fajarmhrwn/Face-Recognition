@@ -1,5 +1,6 @@
-numpy == 1.23.4
-opencv-python == 4.6.0
-pillow == 9.3.0
-tkinter == 8.6
-matplotlib == 3.6.2
+opencv-python
+tk
+numpy
+pillow
+matplotlib
+customtkinter

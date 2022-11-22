@@ -187,15 +187,19 @@ class App(customtkinter.CTk):
         folder = filedialog.askdirectory()
         App.Folder = folder
         print(folder)
-        self.label_2.configure(text=folder[0:20] + "...")
-        print("loading...")
-        for f in os.listdir("src/data"):
-            os.remove(os.path.join("src/data", f))
-        trainingData(folder)
+        if folder != "":
+            self.label_2.configure(text=folder[0:20] + "...")
+            for f in os.listdir("src/data"):
+                os.remove(os.path.join("src/data", f))
+            print("loading...")
+            trainingData(folder)
 
 
     
     def openFile(self):
+        if(not os.path.exists("src/data/eigenface.txt") or not os.path.exists("src/data/matriksCoef.txt")) :
+            tkinter.messagebox.showerror("Error", "Please choose folder first")
+            return
         App.image_file = None
         self.label_time.configure(text="Executed Time : 0 s")
         file = filedialog.askopenfilename()
@@ -308,7 +312,7 @@ class App(customtkinter.CTk):
                     App.image_camera = None
             except:
                 App.image_camera = None
-                print("Dataset tidak ada") 
+                print(" tidak ada closest image")
             frame = App.Frame
             frame_tkinter=cv2.cvtColor(frame,cv2.COLOR_BGR2RGB)
             img_update = ImageTk.PhotoImage(Image.fromarray(frame_tkinter))

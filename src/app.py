@@ -9,7 +9,6 @@ from eigenface import *
 import customtkinter
 import random
 import string
-import threading
 
 customtkinter.set_appearance_mode("System")  # Modes: "System" (standard), "Dark", "Light"
 customtkinter.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"
@@ -156,37 +155,60 @@ class App(customtkinter.CTk):
 
     def camera_event(self):
         if self.switch_camera.get() == 'on':
+            self.label_info_1.configure(image="")
+            self.label_info_1.image = None
+            self.label_info_1.update()
+            App.image_file = None
             self.switch_camera.configure(text="Camera ON")
             self.button_1.configure(state=tkinter.DISABLED)
             self.button_3.configure(state=tkinter.DISABLED)
+            for f in os.listdir("src/data"):
+                os.remove(os.path.join("src/data", f))
             self.opencamera()
             #open camera with MyvideoCapture
         else:
+            self.label_info_1.configure(image="")
+            self.label_info_1.image = None
+            self.label_info_1.update()
             self.switch_camera.configure(text="Camera OFF")
             self.button_1.configure(state=tkinter.NORMAL)
             self.button_3.configure(state=tkinter.NORMAL)
             self.stopcamera()
+            for f in os.listdir("src/data"):
+                os.remove(os.path.join("src/data", f))
+            App.cam = None
 
     def openFolder(self):
         folder = filedialog.askdirectory()
         App.Folder = folder
         print(folder)
-        self.label_2.configure(text=folder[0:20] + "...")
-        print("loading...")
-        for f in os.listdir("src/data"):
-            os.remove(os.path.join("src/data", f))
-        trainingData(folder)
+        if folder != "":
+            self.label_2.configure(text=folder[0:20] + "...")
+            for f in os.listdir("src/data"):
+                os.remove(os.path.join("src/data", f))
+            print("loading...")
+            App.startTime = time.time()
+            trainingData(folder)
+            self.label_time.configure(text="Executed Time: {:.2f} s".format(time.time() - App.startTime))
+            App.startTime = None
+
 
 
     
     def openFile(self):
+        if(not os.path.exists("src/data/eigenface.txt") or not os.path.exists("src/data/matriksCoef.txt")) :
+            tkinter.messagebox.showerror("Error", "Please choose folder first")
+            return
         App.image_file = None
-        App.startTime = time.time()
         self.label_time.configure(text="Executed Time : 0 s")
         file = filedialog.askopenfilename()
         image_path = file
+        App.startTime = time.time()
         image_file = convertImage(image_path)
-        image_file = image_file.reshape(256*256, 1)
+        image_file = (image_file.reshape(256*256, 1))
+        mean = np.loadtxt("src/data/mean.txt", delimiter=";").reshape(256*256, 1)
+        print(np.shape(mean))
+        image_file = image_file - mean
         try:
             eigenface = np.loadtxt("src/data/eigenface.txt",delimiter=";")
             coefmatrix = np.loadtxt("src/data/matriksCoef.txt",delimiter=";")
@@ -220,8 +242,12 @@ class App(customtkinter.CTk):
         App.cam.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
         App.cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
         App.cam.set(cv2.CAP_PROP_FPS, 30)
+        try:
+            trainingData("src/camera")
+        except:
+            print("gambar tidak ada")
         self.everynseconds()
-        while True:
+        while True and App.cam is not None:
             ret, frame = App.cam.read()
             App.Frame = frame
             #Update the image to tkinter...
@@ -256,33 +282,37 @@ class App(customtkinter.CTk):
         App.image_file = None
         self.label_time.configure(text="Executed Time : 0 s")
 
-    
-    def keypressed(self, event):
-        if event.char == '<Return>':
-            print("Enter pressed")
-            self.take_image()
-
     def take_imageInput(self):
-        if App.Frame is not None:    
-            img_camera = convertFrame(App.Frame)
-            App.startTime = time.time()
-            self.img = Image.fromarray(img_camera)
-            self.imgtk = ImageTk.PhotoImage(self.img.resize((256, 256)))
-            self.label_info_2.configure(image=self.imgtk)
-            self.label_info_2.image = self.imgtk
-            img_camera = img_camera.reshape(256*256, 1)
-            try :
-                matrixCoed,eigenface = trainingData("src/camera")
-            except:
-                print("Dataset tidak ada")
+        if App.Frame is not None:
+            App.startTime = time.time()    
+            gambar = cropframe(App.Frame)
             try:
+                img_camera = convertFrame(gambar)
+                img_camera = img_camera.reshape(256*256, 1)
+            except:
+                print("No Face Detected")
+                img_camera = None
+            App.startTime = time.time()
+            try :
+                matrixCoed = np.loadtxt("src/data/matriksCoef.txt",delimiter=";")
+                eigenface = np.loadtxt("src/data/eigenface.txt",delimiter=";")
+                mean = np.loadtxt("src/data/mean.txt", delimiter=";").reshape(256*256, 1)
+                #print jumlah gambar di dalam folder
+                print("jumlah gambar di dalam folder : ",len(os.listdir("src/camera")))
+            except:
+                print("training gagal Dataset tidak ada")
+            try:
+                img_camera = img_camera - mean
                 InputCoef = getCoef(eigenface, img_camera)
                 path = closestImage("src/camera", InputCoef, matrixCoed)
                 print(path)
-                App.image_camera = path
+                if path is not None:
+                    App.image_camera = path
+                else:
+                    App.image_camera = None
             except:
                 App.image_camera = None
-                print("Dataset tidak ada") 
+                print(" tidak ada closest image")
             frame = App.Frame
             frame_tkinter=cv2.cvtColor(frame,cv2.COLOR_BGR2RGB)
             img_update = ImageTk.PhotoImage(Image.fromarray(frame_tkinter))
@@ -296,6 +326,12 @@ class App(customtkinter.CTk):
         cv2.imwrite(img_name, App.Frame)
         cropimage(img_name)
         print("{} written!".format(img_name))
+        for f in os.listdir("src/data"):
+            os.remove(os.path.join("src/data", f))
+        App.startTime = time.time()
+        trainingData("src/camera")
+        self.label_time.configure(text="Executed Time : " + str(round(time.time() - App.startTime, 2)) + " s")
+        App.startTime= None
         frame = App.Frame
         frame_tkinter=cv2.cvtColor(frame,cv2.COLOR_BGR2RGB)
         img_update = ImageTk.PhotoImage(Image.fromarray(frame_tkinter))
@@ -306,7 +342,7 @@ class App(customtkinter.CTk):
     def trainingImage(self):
             start = time.time()
             while time.time() - start < 10:
-                if (time.time() - start) % 0.5 == 0:
+                if (time.time() - start) % 0.25 == 0:
                     print("Take Image")
                     ret , frame = App.cam.read()
                     App.Frame = frame
@@ -328,7 +364,6 @@ class App(customtkinter.CTk):
         elif App.image_file is not None:
             self.img = Image.open(App.image_file)
             self.imgtk = ImageTk.PhotoImage(self.img.resize((256, 256)))
-            start_time = time.time()
             self.label_info_1.configure(image=self.imgtk)
             self.label_info_1.image=self.imgtk
             self.label_info_1.update()
@@ -342,9 +377,10 @@ class App(customtkinter.CTk):
             print("No image selected")
         
     def everynseconds(self):
-        print("every 10 seconds")
-        self.after(10000, self.everynseconds)
-        self.take_imageInput()
+        if App.cam is not None:
+            print("every 5 seconds")
+            self.after(5000, self.everynseconds)
+            self.take_imageInput()
     
 if __name__ == "__main__":
     start = time.time()

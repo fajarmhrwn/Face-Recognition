@@ -25,6 +25,7 @@ def getEigenValueVector(A):
     QQ = np.eye(n)
     i = 0
     while(True):
+        i += 1
         copyMatrix_copy = np.copy(copyMatrix)
         s = copyMatrix.item(n-1, n-1)
         smult = s * np.eye(n)
@@ -33,7 +34,6 @@ def getEigenValueVector(A):
         # smult dikembalikan nilainya
         copyMatrix = np.add(R @ Q, smult)
         QQ = QQ @ Q
-        i += 1
         if(checkConverge(copyMatrix,copyMatrix_copy)):
             # Cek parameter konvergen 
             break
@@ -112,6 +112,7 @@ def nearestDistance(InputCoef, MatrixCoef) :
 
 def cropimage(image):
     '''Mengcrop gambar di wajah pengguna'''
+    print("Mengcrop image")
     frame = cv2.imread(image)
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     face_cascade = cv2.CascadeClassifier('src/src_feature/face.xml')
@@ -126,15 +127,15 @@ def cropimage(image):
         os.remove(image)
         return image
         
-def cropframe(frame,path):
+def cropframe(frame):
     '''Mengcrop gambar di wajah pengguna'''
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    face_cascade = cv2.CascadeClassifier('src\src_feature\face.xml')
+    face_cascade = cv2.CascadeClassifier('src/src_feature/face.xml')
     faces = face_cascade.detectMultiScale(gray, 1.1, 4)
     if len(faces) > 0:
         for (x, y, w, h) in faces:
             crop_img = frame[y:y+h+10, x:x+w+10]
-            cv2.imwrite(path, crop_img)
+            return crop_img
 
 
 def list_eigenface(normalizedMatrix,all_image):
@@ -201,6 +202,8 @@ def trainingData(path):
                 A= np.column_stack((A, convertedImage.reshape(256*256, 1)))
     
     normalizedMatrix = A - A.mean(axis=1, keepdims=True)
+    print(np.shape(A.mean(axis=1, keepdims=True)))
+    np.savetxt(f"src/data/mean.txt", A.mean(axis=1, keepdims=True) , delimiter=";")
     eigeface = list_eigenface(normalizedMatrix,A)
     MatrixCoef = getMatrixCoef(eigeface, normalizedMatrix)
     np.savetxt(f"src/data/matriksCoef.txt", MatrixCoef, delimiter=";")
@@ -208,14 +211,24 @@ def trainingData(path):
     print("Training Selesai")
     return MatrixCoef, eigeface
 
+def getMean(path):
+    folderpath = path
+    A = np.empty((256*256,0), float) #Matriks Gambar (256*256,<Banyak Gambar>)
+    for (dirPath, dirNames, file) in os.walk(folderpath):
+        for fileNames in file :
+                tempPath = os.path.join(dirPath, fileNames)
+                convertedImage = convertImage(tempPath)
+                A= np.column_stack((A, convertedImage.reshape(256*256, 1)))
+    return A.mean(axis=1, keepdims=True)
+
 
 def closestImage(path, InputCoef, MatrixCoef):
     '''Mengluarkan Gambar yang paling mirip jika tidak ada keluarkan "Gambar tidak ditemukan" '''
     print("Mencari gambar terdekat")
     folderpath = path
     minimum = nearestDistance(InputCoef, MatrixCoef)
-    print(minimum, "min")
-    if minimum > 1.5 :   # Tuning minimum 
+    print(minimum, "min") 
+    if minimum < 1.5 :   # Tuning minimum 
         print("Gambar terdekat")
         nearestImage =  outputImage(folderpath, MatrixCoef, InputCoef)
         print(nearestImage)

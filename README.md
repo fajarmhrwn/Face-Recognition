@@ -1,6 +1,5 @@
 # Algeo02-21080
 > Face Recognition using EigenFace algorithm.
-> Live demo [_here_](https://www.example.com). <!-- If you have the project hosted somewhere, include the link here. -->
 ## Table of Contents
 * [General Info](#general-information)
 * [Technologies Used](#technologies-used)
@@ -13,7 +12,7 @@
 
 
 ## General Information
-Face recognition is a method of identifying or verifying the identity of an individual using person's face. Face recognition can be made by using eigenface algorithm. Eigenface is formed by finding its eigenvalue and eigenvector. To find eigenvalue and eigenvector, we use the QR decomposition using the gram-schmidt method (find the covarian matrix).
+Face recognition is a method of identifying or verifying the identity of an individual using person's face. Face recognition can be made by using eigenface algorithm. Eigenface is formed by finding its eigenvalue and eigenvector. To find eigenvalue and eigenvector, we use the QR decomposition using the gram-schmidt method (find from the covarian matrix).
 <!-- You don't have to answer all the questions - just the ones relevant to your project. -->
 
 
@@ -32,9 +31,13 @@ Face recognition is a method of identifying or verifying the identity of an indi
 - Output image preview
 
 
-
 ## Screenshots
-![Example screenshot](./img/screenshot.png)
+- Tampilan Awal
+<p align="center">
+    <img src="https://ibb.co/6NC8B0R">
+</p>
+
+
 <!-- If you have screenshots you'd like to share, include them here. -->
 
 

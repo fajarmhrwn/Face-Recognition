@@ -1,4 +1,4 @@
-# Algeo02-21080
+# Face Recognition
 > Face Recognition using EigenFace algorithm.
 ## Table of Contents
 * [General Info](#general-information)
